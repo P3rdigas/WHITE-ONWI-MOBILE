@@ -1,0 +1,57 @@
+<ion-content>
+  <ion-grid class="height-full">
+    <ion-row class="height-full ion-align-items-center">
+      <ion-col>
+        <ion-grid>
+          <ion-row class="ion-justify-content-center ion-padding-bottom">
+            <ion-col size="8">
+              <ion-img [src]="subscription.Image" class="ion-padding-bottom"></ion-img>
+            </ion-col>
+          </ion-row>
+          
+          <ion-row>
+            <ion-col size="12">
+              <form class="ion-text-center ion-padding-bottom" [formGroup]="loginForm" (ngSubmit)="getUser()">
+                <ion-item lines="none">
+                  <ion-label mode="md" position="floating">Email</ion-label>
+                  <ion-input enterkeyhint="next" type="email" inputmode="email" formControlName="email" id="email" placeholder="Email" required="true"></ion-input>
+                </ion-item>
+                <ion-item lines="none">
+                  <ion-label mode="md" position="floating">Password</ion-label>
+                  <ion-input enterkeyhint="enter" type="password" inputmode="text" formControlName="password" id="password" placeholder="Password" required="true"></ion-input>
+                </ion-item>
+                <ion-item lines="none">
+                  <div class="checkbox-inline">
+                    <label>
+                      <input type="checkbox" id="remember" formControlName="remember" mode="ios">
+                      Remember login
+                    </label>
+                  </div>
+                </ion-item>
+                <ion-grid>
+                  <ion-row class="ion-justify-content-center">
+                    <ion-col size="6">
+                      <!-- [disabled]="loginForm.invalid" [disabled]="!loginForm.valid" -->
+                      <ion-button mode="ios" color="primary" expand="block" type="submit">Login</ion-button>
+                    </ion-col>
+                  </ion-row>
+                </ion-grid>
+              </form>
+            </ion-col>
+          </ion-row>
+        </ion-grid>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+</ion-content>
+<ion-footer class="ion-no-border">
+  <ion-segment mode="md">
+    <ion-segment-button layout="icon-end" (click)="exit()">
+      <ion-icon size="small" src="assets/images/exit.svg"></ion-icon>
+      <ion-label>Exit</ion-label>
+    </ion-segment-button>
+    <ion-segment-button [routerLink]="['/subscription']" routerDirection="root">
+      <ion-label>Subscription</ion-label>
+    </ion-segment-button>
+  </ion-segment>
+</ion-footer>

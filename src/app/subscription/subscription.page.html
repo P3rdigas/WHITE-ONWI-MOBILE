@@ -1,0 +1,41 @@
+<ion-content>
+  <ion-grid class="height-full">
+    <ion-row class="height-full ion-align-items-center">
+      <ion-col>
+        <ion-grid>
+          <ion-row class="ion-justify-content-center ion-padding-bottom">
+            <ion-col size="8">
+              <ion-img src="assets/images/logo.png" class="ion-padding-bottom" alt="Avião vermelho saindo de um cubo cinza e voando para cima em direção a uma nuvem"></ion-img>
+            </ion-col>
+          </ion-row>
+          <ion-row>
+            <ion-col size="12">
+              <form class="ion-text-center ion-padding-bottom" [formGroup]="subscriptionForm" (ngSubmit)="getSubscription()">
+                <ion-item lines="none" mode="md">
+                  <ion-label position="floating">Subscription</ion-label>
+                  <!-- <ion-input enterkeyhint="enter" inputmode="text" minlength="36" maxlength="36" formControlName="subscriptionID" id="subscriptionID" required="true" [brmasker]="{mask: '00000000-0000-0000-0000-000000000000'}"></ion-input> -->
+                  <ion-input enterkeyhint="enter" inputmode="text" minlength="36" maxlength="36" formControlName="subscriptionID" id="subscriptionID" required="true"></ion-input>
+                </ion-item>
+                <ion-grid>
+                  <ion-row class="ion-justify-content-center">
+                    <ion-col size="6">
+                      <!-- [disabled]="subscriptionForm.invalid" -->
+                      <ion-button color="primary" expand="block" type="submit" mode="ios">Login Onwi</ion-button>
+                    </ion-col>
+                  </ion-row>
+                </ion-grid>
+              </form>
+            </ion-col>
+          </ion-row>
+        </ion-grid>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+</ion-content>
+<ion-footer class="ion-no-border">
+  <ion-toolbar class="ion-text-center">
+    <ion-note>For more information please go to 
+      <a (click)=openWebsite()><u>www.onwi-app.com</u></a>
+    </ion-note>
+  </ion-toolbar>
+</ion-footer>

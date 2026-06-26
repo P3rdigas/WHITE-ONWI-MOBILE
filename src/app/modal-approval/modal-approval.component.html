@@ -1,0 +1,44 @@
+<ion-header mode="ios">
+  <ion-toolbar mode="ios">
+    <ion-buttons slot="end">
+      <ion-button (click)="exit()">
+        <ion-icon slot="icon-only" name="close"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+<ion-content class="ion-padding-horizontal">
+  <ion-text class="titulo ion-text-center">
+    <h5><span>&nbsp; Documents to Approve &nbsp;</span></h5>
+  </ion-text>
+  <ion-text mode="md">
+    <p>If you accept and understand is confirming that took note of this document and understood your content.</p>
+  </ion-text>
+  <ion-item lines="none" mode="ios">
+    <div class="checkbox-inline">
+      <label>
+        <input type="checkbox" id="isReceived" [(ngModel)]="data.isReceived" mode="ios">
+        Accept
+      </label>
+    </div>
+  </ion-item>
+  <ion-item lines="none" mode="ios">
+    <div class="checkbox-inline">
+      <label>
+        <input type="checkbox" id="wasUnderstood" [(ngModel)]="data.wasUnderstood" mode="ios">
+        Understood
+      </label>
+    </div>
+  </ion-item>
+  <ion-item lines="none" mode="ios">
+  <ion-label position="stacked">Comment:</ion-label>
+    <ion-textarea mode="ios" [(ngModel)]="data.Comments" id="Comments" placeholder="Insert your comment here"></ion-textarea>
+  </ion-item>
+  <ion-grid>
+    <ion-row class="ion-justify-content-center">
+      <ion-col size="6">
+        <ion-button mode="ios" color="primary" expand="block" (click)="postApprove(data)">Accept</ion-button>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+</ion-content>

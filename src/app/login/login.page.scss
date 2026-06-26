@@ -1,0 +1,21 @@
+div.checkbox,
+div.checkbox label {
+  /* TO-DO - Personalizar checkbox */
+  text-align: right;
+  float: right;
+}
+
+ion-segment-button {
+  --border-width: 1px 1px 0 0;
+  --border-style: solid;
+  --border-color: #909090;
+  --color: #909090;
+  font-size: 16px;
+  text-transform: capitalize;
+}
+ion-segment-button:last-of-type {
+  --border-width: 1px 0px 0 0;
+}
+ion-segment-button ion-label {
+  font-weight: 600;
+}

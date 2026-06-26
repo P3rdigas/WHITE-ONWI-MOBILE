@@ -1,0 +1,101 @@
+<ion-header mode="ios">
+  <!-- TO-DO - Background (se tiver) no campo subscription.BackgroundImage -->
+  <ion-toolbar mode="ios">
+    <ion-grid>
+      <ion-row>
+        <ion-col size="5">
+          <div id="logo">
+            <ion-img [src]="subscription.CustomerImage"></ion-img>
+          </div>
+        </ion-col>
+        <ion-col size="5">
+          <ion-text id="nome">
+            <p>{{ user.Name }}</p>
+          </ion-text>
+          <ion-text id="sair" (click)="exit()">
+            <p>Exit <ion-icon size="small" src="assets/images/exit.svg"></ion-icon></p>
+          </ion-text>
+        </ion-col>
+        <ion-col size="2">
+          <ion-avatar id="img-perfil">
+            <ion-img [src]="user.Photo"></ion-img>
+          </ion-avatar>
+        </ion-col>
+        <ion-col size="12">
+          <ion-img *ngIf="subscription.Image" [src]="subscription.Image"></ion-img>
+          <!-- <ion-img src="assets/images/divisor.svg"></ion-img> -->
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </ion-toolbar>
+</ion-header>
+<ion-content [scrollEvents]="true" (ionScroll)="logScrolling($event)">
+  <ion-grid>
+    <ion-row>
+      <ion-col size="6" class="ion-padding-horizontal">
+        <ion-button mode="ios" color="primary" size="small" expand="block" (click)="openMenu()">Toggle Folders</ion-button>
+      </ion-col>
+      <ion-col size="5" offset="1" class="ion-padding-horizontal">
+        <ion-button mode="ios" color="medium" size="small" expand="block" (click)="refresh(true)">
+          <ion-icon slot="start" src="assets/images/img-refresh.svg"></ion-icon> Refresh
+        </ion-button>
+      </ion-col>
+      <ion-col size="12">
+        <ion-searchbar mode="ios" placeholder="" [(ngModel)]="search" (ionChange)="updateFilters()"></ion-searchbar>
+      </ion-col>
+    </ion-row>
+    <ion-row>
+      <ion-col size="12">
+        <ion-segment id="tabs-folders" mode="md" scrollable value="{{tabsFolders}}">
+          <ion-segment-button value="Library">
+            <ion-label>Library</ion-label>
+          </ion-segment-button>
+          <ion-segment-button value="My Documents" [routerLink]="['/my-documents', 'nao']" routerDirection="root">
+            <ion-label>My Documents</ion-label>
+          </ion-segment-button>
+          <ion-segment-button value="My Favorites" [routerLink]="['/my-favorites']" routerDirection="root">
+            <ion-label>My Favorites</ion-label>
+          </ion-segment-button>
+          <ion-segment-button value="Last Docs Distributed" [routerLink]="['/last-docs']" routerDirection="root" *ngIf="networkStatus !== 'offline'">
+            <ion-label>Last Docs Distributed</ion-label>
+          </ion-segment-button>
+        </ion-segment>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+  <!-- <ion-button (click)="testeDownload()" expand="block" shape="round">
+    BAIXAR ARQUIVO GRANDÃO
+  </ion-button> -->
+
+  <div class="div-folders">
+    <ion-text color="dark" *ngIf="documents === null">
+      <p>No files found.</p>
+    </ion-text>
+    <ion-list lines="none" class="ion-no-margin">
+      <ion-item lines="full" *ngFor="let doc of documents; let i = index">
+        <ion-img [src]="doc.DocumentVersionIcon" slot="start" (click)="openFile(doc)"></ion-img>
+        <!-- <ion-icon [src]="doc.DocumentVersionIcon" slot="start"></ion-icon> -->
+        <ion-label (click)="openFile(doc)">
+          <b>{{ doc.DocumentTag }} </b>{{ doc.DocumentDesignation }}
+        </ion-label>
+        <ion-badge slot="end" color="medium" mode="ios">{{ doc.DocumentVersion }}</ion-badge>
+        <ion-icon src="assets/images/icon-star.svg" slot="end" *ngIf="(!doc.DocumentFavorite || doc.DocumentFavorite === false || doc.DocumentFavorite === 'false') && networkStatus !== 'offline'" style="font-size: 1em;" (click)="addFavorite(doc, i)"></ion-icon>
+        <ion-icon src="assets/images/icon-starfull.svg" slot="end" *ngIf="(doc.DocumentFavorite === true || doc.DocumentFavorite === 'true') && networkStatus !== 'offline'" style="font-size: 1em;" (click)="removeFavorite(doc, i)"></ion-icon>
+      </ion-item>
+    </ion-list>
+  </div>
+
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed" (click)="scrollTop()" *ngIf="showScroll">
+    <ion-fab-button>
+      <ion-icon src="./assets/icon/up-arrow.svg"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+</ion-content>
+<ion-footer color="medium" mode="md" id="footer-database">
+  <ion-toolbar>
+    <ion-title>
+      {{ subscription.DatabaseName }}
+      <span *ngIf="networkStatus === 'offline'">Offline</span>
+    </ion-title>
+  </ion-toolbar>
+</ion-footer>

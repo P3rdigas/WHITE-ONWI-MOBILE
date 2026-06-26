@@ -1,0 +1,166 @@
+import { Component, OnInit } from '@angular/core';
+import { MenuController, ModalController, NavController } from '@ionic/angular';
+import { ApiService } from '../services/api/api.service';
+import { Events } from '../services/events/events';
+import { UtilsService } from '../services/utils/utils.service';
+import { ModalApprovalComponent } from '../modal-approval/modal-approval.component';
+// import { Badge } from '@ionic-native/badge/ngx';
+import { SqliteService } from '../services/sqlite/sqlite.service';
+import { BaseDocumentPage } from '../base-document.page';
+// import { LocalNotifications } from '@ionic-native/local-notifications/ngx';
+
+@Component({
+  selector: 'app-last-docs',
+  templateUrl: './last-docs.page.html',
+  styleUrls: ['./last-docs.page.scss'],
+  standalone: false
+})
+export class LastDocsPage extends BaseDocumentPage implements OnInit {
+  public user: any = localStorage.getItem('onwi.User');
+  public subscription: any = localStorage.getItem('onwi.Subscription');
+  public tabsFolders = 'Last Docs Distributed';
+  public documents: any = null;
+  public fullDocuments: any = null;
+  public networkStatus: any = localStorage.getItem('onwi.networkStatus') ? localStorage.getItem('onwi.networkStatus') : 'offline';
+  public search = '';
+
+  constructor(
+    private utilsService: UtilsService,
+    private apiService: ApiService,
+    private sqlite: SqliteService,
+    private events: Events,
+    private menu: MenuController,
+    private modalCtrl: ModalController,
+    private navCtrl: NavController,
+    // // private badge: Badge,
+    // private localNotifications: LocalNotifications
+  ) {
+    super();
+  }
+
+  ngOnInit() {
+    this.menu.enable(false);
+
+    const session = this.utilsService.initUserSession();
+    if (!session) return;
+    this.user = session.user;
+    this.subscription = session.subscription;
+
+    this.events.subscribe('changeNetworkStatus', (status) => {
+      // console.log('events.subscribe changeNetworkStatus', status);
+      this.networkStatus = status;
+    });
+    this.events.subscribe('updateMyFavorites', (folders) => {
+      console.log('events.subscribe updateMyFavorites', folders);
+      this.getDocuments();
+    });
+    this.events.subscribe('updateLastDocs', (folders) => {
+      console.log('events.subscribe updateLastDocs', folders);
+      this.getDocuments();
+    });
+  }
+
+  exit() {
+    this.utilsService.exitApp('interno', true);
+  }
+
+  refresh(updateApi?) {
+    this.networkStatus = localStorage.getItem('onwi.networkStatus');
+    this.tabsFolders = 'Last Docs Distributed';
+    this.search = '';
+    if (updateApi) {
+      this.utilsService.getPermissionsOffline();
+      this.getDocumentsAPI();
+    } else {
+      this.getDocuments();
+    }
+  }
+
+  inputFilterSearch() {
+    this.documents = this.utilsService.filterDocumentSearch(this.documents, this.search);
+  }
+
+  async getDocumentsAPI() {
+    await this.utilsService.fetchAndStoreDocuments({
+      networkStatus: this.networkStatus,
+      apiCall: () => this.apiService.getToApproveDocuments(this.subscription.OdataUser, this.subscription.OdataPassword, this.user.ID),
+      listType: 'lastDocsDistributed',
+      storeCall: (docs) => this.sqlite.updateLastDocsDistributedList(docs),
+      refreshCall: () => this.getDocuments()
+    });
+
+    // this.localNotifications.clear(9999);
+    // console.log(JSON.parse(result.data).value);
+
+    // console.log(this.documents);
+    // this.localNotifications.schedule({
+    //   id: 9999,
+    //   title: 'Documents to approve',
+    //   text: 'Check the Last Docs Distributed to approve your documents. You have ' + response2.length + ' pending document(s).',
+    //   badge: response2.length,
+    //   priority: 1
+    // });
+  }
+
+  async getDocuments() {
+    // const loading = await this.utilsService.createLoading();
+    // loading.present();
+
+    this.sqlite.getLastDocsDistributed().then((documents: any) => {
+      console.log('this.sqlite.getLastDocsDistributed', documents);
+      if (documents && documents.length) {
+        this.fullDocuments = this.documents = documents;
+      } else {
+        this.fullDocuments = this.documents = null;
+      }
+      // loading.dismiss();
+    })
+    .catch((error) => {
+      console.log('getDocuments - sqlite.getLastDocsDistributed catch', error);
+      // loading.dismiss();
+    });
+  }
+
+  async addFavorite(doc: any, indexDoc: number) {
+    if (this.networkStatus === 'offline') return;
+    await this.utilsService.addFavorite(doc, this.user, this.subscription, () => this.utilsService.backgroundUpdateFavorites());
+  }
+
+  async removeFavorite(doc: any, indexDoc: number) {
+    if (this.networkStatus === 'offline') return;
+    await this.utilsService.removeFavorite(doc, this.subscription, () => this.utilsService.backgroundUpdateFavorites());
+  }
+
+  async approveDoc(doc) {
+    // Modal para aprovar documento
+    console.log('approveDoc', doc);
+    const modal = await this.modalCtrl.create({
+      component: ModalApprovalComponent,
+      componentProps: {
+        document: doc
+      }
+    });
+    modal.present();
+
+    modal.onDidDismiss().then((dataReturned) => {
+      if (dataReturned.data === 'Updated') {
+        this.refresh(true);
+        // this.utilsService.backgroundUpdateMyDocuments();
+        // this.utilsService.backgroundUpdateLibrary();
+      }
+    });
+  }
+
+  async openFile(doc: any) {
+    await this.utilsService.openFile(doc, this.user, this.subscription, () => this.getDocuments());
+  }
+
+  ionViewWillEnter() {
+    this.networkStatus = localStorage.getItem('onwi.networkStatus');
+    // Se estiver offline redireciono para próxima aba
+    if (this.networkStatus === 'offline') {
+      this.navCtrl.navigateRoot(['/my-documents', 'nao']);
+    }
+    this.refresh(false);
+  }
+}
