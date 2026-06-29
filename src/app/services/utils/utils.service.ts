@@ -405,6 +405,10 @@ export class UtilsService {
     });
   }
 
+  getDocSortKey(doc: any): string {
+    return (doc.DocumentTag?.trim() ? doc.DocumentTag : doc.DocumentDesignation) || '';
+  }
+
   async addFavorite(doc: any, user: any, subscription: any, onComplete?: () => void): Promise<void> {
     const loading = await this.createLoading();
     loading.present();

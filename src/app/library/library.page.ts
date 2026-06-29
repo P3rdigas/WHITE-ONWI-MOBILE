@@ -121,10 +121,12 @@ export class LibraryPage extends BaseDocumentPage implements OnInit {
       console.log('getDocuments getLibrary', documents);
       this.fullDocuments = this.documents = null;
       if (documents && documents.length) {
-        this.fullDocuments = this.documents = documents;
-        // Filtro por pasta e busca se selecionado
-        this.updateFilters();
+        this.fullDocuments = this.documents = [...documents].sort((a: any, b: any) => 
+          this.utilsService.getDocSortKey(a).localeCompare(this.utilsService.getDocSortKey(b))
+        );
       }
+
+      this.updateFilters();
     })
     .catch((error) => {
       console.log('getDocuments - sqlite.getLibrary catch', error);

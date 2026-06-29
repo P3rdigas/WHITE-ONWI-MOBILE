@@ -148,9 +148,11 @@ export class MyDocumentsPage extends BaseDocumentPage implements OnInit {
       console.log('getMyDocuments', documents);
       this.fullDocuments = this.documents = null;
       if (documents && documents.length) {
-        this.fullDocuments = this.documents = documents;
+        this.fullDocuments = this.documents = [...documents].sort((a: any, b: any) => 
+          this.utilsService.getDocSortKey(a).localeCompare(this.utilsService.getDocSortKey(b))
+        );
       }
-      // Filtro por pasta e busca se selecionado
+
       this.updateFilters();
     })
     .catch((error) => {
@@ -214,4 +216,5 @@ export class MyDocumentsPage extends BaseDocumentPage implements OnInit {
 
     return result;
   }
+
 }
