@@ -1,5 +1,4 @@
 import { Component, OnInit } from '@angular/core';
-import { MenuController, Platform } from '@ionic/angular';
 import { ApiService } from '../services/api/api.service';
 import { Events } from '../services/events/events';
 import { UtilsService } from '../services/utils/utils.service';
@@ -19,8 +18,10 @@ export class MyDocumentsPage extends BaseDocumentPage implements OnInit {
   public tabsFolders = 'My Documents';
   public documents: any = null;
   public fullDocuments: any = null;
-  public selectedFolder: any = null;
+  public folders: any[] = [];
+  public filteredFolders: any[] = [];
   public networkStatus: any = localStorage.getItem('onwi.networkStatus') ? localStorage.getItem('onwi.networkStatus') : 'offline';
+  public viewMode: 'list' | 'folder' = 'folder';
   public search = '';
   public firstLogin = 'no';
   public statusUpdateAPI = {
@@ -32,7 +33,6 @@ export class MyDocumentsPage extends BaseDocumentPage implements OnInit {
     private apiService: ApiService,
     private sqlite: SqliteService,
     private events: Events,
-    private menu: MenuController,
     private route: ActivatedRoute
   ) {
     super();
@@ -44,13 +44,6 @@ export class MyDocumentsPage extends BaseDocumentPage implements OnInit {
     this.user = session.user;
     this.subscription = session.subscription;
 
-    // TODO:
-    // Filter folders
-    this.events.subscribe('selectedFolder', (folder) => {
-      // console.log('myDocuments selectedFolder', folder);
-      this.selectedFolder = folder;
-      this.updateFilters();
-    });
     this.events.subscribe('changeNetworkStatus', (status) => {
       // console.log('events.subscribe changeNetworkStatus', status);
       this.networkStatus = status;
@@ -58,7 +51,7 @@ export class MyDocumentsPage extends BaseDocumentPage implements OnInit {
     this.events.subscribe('updateFolders', (folders) => {
       // console.log('events.subscribe updateFolders MyDocuments', folders);
       this.statusUpdateAPI.folders = true;
-      this.menu.enable(true);
+      this.loadFolders();
     });
     this.events.subscribe('updateMyDocuments', (folders) => {
       // console.log('events.subscribe updateMyDocuments MyDocuments', folders);
@@ -80,14 +73,25 @@ export class MyDocumentsPage extends BaseDocumentPage implements OnInit {
     });
   }
 
-  openMenu() {
-    if (this.firstLogin == 'yes') {
-      if (this.statusUpdateAPI.folders) {
-        this.menu.open();
-      }
-    } else {
-      this.menu.open();
-    }
+  toggleViewMode() {
+    this.viewMode = this.viewMode === 'folder' ? 'list' : 'folder';
+    this.updateFilters();
+  }
+
+  toggleFolder(folder: any) {
+    folder.open = !folder.open;
+  }
+
+  getDocumentsOfFolder(folder: any): any[] {
+    if (!this.documents) return [];
+    return this.utilsService.filterFolder(this.documents, folder);
+  }
+
+  getTotalDocumentsOfFolder(folder: any): number {
+    if (!this.fullDocuments) return 0;
+    const direct = this.utilsService.filterFolder(this.fullDocuments, folder).length;
+    const children = folder.children?.reduce((sum: number, child: any) => sum + this.getTotalDocumentsOfFolder(child), 0) ?? 0;
+    return direct + children;
   }
 
   exit() {
@@ -103,19 +107,28 @@ export class MyDocumentsPage extends BaseDocumentPage implements OnInit {
       this.utilsService.getPermissionsOffline();
       this.getDocumentsAPI();
     } else {
+      this.loadFolders();
       this.getDocuments();
     }
   }
 
   updateFilters() {
     this.documents = this.fullDocuments;
-    // Filtro por pasta se selecionado
-    if (this.selectedFolder) {
-      this.documents = this.utilsService.filterFolder(this.documents, this.selectedFolder);
-    }
-    // Filtro pela busca se preenchida
-    if (this.search && this.search != '') {
-      this.documents = this.utilsService.filterDocumentSearch(this.documents, this.search);
+
+    if (this.viewMode === 'folder') {
+      if (this.search && this.search !== '') {
+        this.documents = this.utilsService.filterDocumentSearch(this.fullDocuments, this.search);
+
+        // Open folders by default
+        this.filteredFolders = this.filterFoldersWithResults(this.folders, this.documents, true);
+      } else {
+        // Close folders by default
+        this.filteredFolders = this.filterFoldersWithResults(this.folders, this.fullDocuments, false);
+      }
+    } else {
+      if (this.search && this.search !== '') {
+        this.documents = this.utilsService.filterDocumentSearch(this.documents, this.search);
+      }
     }
   }
 
@@ -170,9 +183,7 @@ export class MyDocumentsPage extends BaseDocumentPage implements OnInit {
 
     this.refresh(false);
     
-    if (this.firstLogin == 'no') {
-      this.menu.enable(true);
-    } else {
+    if (this.firstLogin === 'yes') {
       // Update Permissions, Folders, MyDocuments, MyFavorites, Library, Last Docs
       this.utilsService.getPermissionsOffline();
       this.utilsService.updateFolders();
@@ -181,5 +192,26 @@ export class MyDocumentsPage extends BaseDocumentPage implements OnInit {
       this.utilsService.backgroundUpdateLibrary();
       this.utilsService.backgroundUpdateLastDocsDistributed();
     }
+  }
+
+  private async loadFolders() {
+    this.folders = await this.utilsService.prepareMenuFolders(null) || [];
+    this.filteredFolders = this.filterFoldersWithResults(this.folders, this.fullDocuments || [], false);
+  }
+
+  private filterFoldersWithResults(folders: any[], matchedDocs: any[], autoOpen = false): any[] {
+    const result = [];
+    for (const folder of folders) {
+      const hasDirectDocs = matchedDocs.some(doc => doc.DocumentFolderID === folder.FolderID);
+      const matchingChildren = folder.children?.length
+        ? this.filterFoldersWithResults(folder.children, matchedDocs, autoOpen)
+        : [];
+      
+      if (hasDirectDocs || matchingChildren.length) {
+        result.push({ ...folder, open: autoOpen, children: matchingChildren });
+      }
+    }
+
+    return result;
   }
 }

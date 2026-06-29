@@ -20,7 +20,6 @@ export class LibraryPage extends BaseDocumentPage implements OnInit {
   public fullDocuments: any = null;
   public folders: any[] = [];
   public filteredFolders: any[] = [];
-  public selectedFolder: any = null;
   public networkStatus: any = localStorage.getItem('onwi.networkStatus') ? localStorage.getItem('onwi.networkStatus') : 'offline';
   public search = '';
 
@@ -41,14 +40,6 @@ export class LibraryPage extends BaseDocumentPage implements OnInit {
     this.subscription = session.subscription;
 
     // Filter folders
-    // this.events.subscribe('selectedFolder', (folder) => {
-    //   // console.log('library selectedFolder', folder);
-    //   this.selectedFolder = folder;
-    //   this.updateFilters();
-    // });
-    // this.events.subscribe('updateFolders', (folders) => {
-    //   this.menu.enable(true);
-    // });
     this.events.subscribe('updateFolders', (folders) => {
       this.loadFolders();
     })
@@ -68,17 +59,6 @@ export class LibraryPage extends BaseDocumentPage implements OnInit {
 
   toggleFolder(folder: any) {
     folder.open = !folder.open;
-  }
-
-  selectFolder(folder: any) {
-    if (this.selectedFolder?.FolderID === folder.FolderID) {
-      // Clicking the same folder deselects it
-      this.selectedFolder = null;
-    } else {
-      this.selectedFolder = folder;
-    }
-
-    this.updateFilters();
   }
 
   getDocumentsOfFolder(folder: any): any[] {
@@ -101,7 +81,6 @@ export class LibraryPage extends BaseDocumentPage implements OnInit {
     this.tabsFolders = 'Library';
     this.networkStatus = localStorage.getItem('onwi.networkStatus');
     this.search = '';
-    this.selectedFolder = null;
     if (updateApi) {
       this.utilsService.updateFolders();
       this.utilsService.getPermissionsOffline();
@@ -123,9 +102,6 @@ export class LibraryPage extends BaseDocumentPage implements OnInit {
     } else {
       this.closeAllFolders(this.folders);
       this.filteredFolders = this.folders;
-      if (this.selectedFolder) {
-        this.documents = this.utilsService.filterFolder(this.documents, this.selectedFolder);
-      }
     }
   }
 

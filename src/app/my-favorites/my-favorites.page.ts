@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { AlertController, MenuController, NavController } from '@ionic/angular';
+import { AlertController } from '@ionic/angular';
 import { ApiService } from '../services/api/api.service';
 import { Events } from '../services/events/events';
 import { UtilsService } from '../services/utils/utils.service';
@@ -18,7 +18,6 @@ export class MyFavoritesPage extends BaseDocumentPage implements OnInit {
   public tabsFolders = 'My Favorites';
   public documents: any = null;
   public fullDocuments: any = null;
-  public selectedFolder: any = null;
   public networkStatus: any = 'offline';
   public search = '';
 
@@ -28,26 +27,16 @@ export class MyFavoritesPage extends BaseDocumentPage implements OnInit {
     private apiService: ApiService,
     private sqlite: SqliteService,
     private events: Events,
-    private menu: MenuController,
-    private navCtrl: NavController,
   ) {
     super();
   }
 
   ngOnInit() {
-    this.menu.enable(false);
-
     const session = this.utilsService.initUserSession();
     if (!session) return;
     this.user = session.user;
     this.subscription = session.subscription;
 
-    // Filter folders
-    this.events.subscribe('selectedFolder', (folder) => {
-      // console.log('selectedFolder', folder);
-      this.selectedFolder = folder;
-      // this.getFavorites();
-    });
     this.events.subscribe('changeNetworkStatus', (status) => {
       // console.log('events.subscribe changeNetworkStatus', status);
       this.networkStatus = status;

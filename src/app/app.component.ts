@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 
-import { AlertController, MenuController, NavController, Platform } from '@ionic/angular';
+import { AlertController, NavController, Platform } from '@ionic/angular';
 import { Router } from '@angular/router';
 // import { SplashScreen } from '@ionic-native/splash-screen/ngx';
 // import { StatusBar } from '@ionic-native/status-bar/ngx';
@@ -19,7 +19,6 @@ import { Network } from '@capacitor/network';
   standalone: false
 })
 export class AppComponent implements OnInit {
-  public menuFolders: any = [];
   public appVersionName: any;
   public networkStatus: any = 'offline';
 
@@ -31,7 +30,6 @@ export class AppComponent implements OnInit {
     private utilsService: UtilsService,
     private sqlite: SqliteService,
     private events: Events,
-    private menu: MenuController,
     private navCtrl: NavController,
     // private appVersion: AppVersion,
     private router: Router
@@ -40,11 +38,6 @@ export class AppComponent implements OnInit {
   }
 
   async initializeApp() {
-    this.events.subscribe('updateFolders', (folders) => {
-      console.log('events.subscribe updateFolders', folders);
-      this.menuFolders = folders;
-    });
-
     await this.platform.ready();
 
     // this.statusBar.styleLightContent();
@@ -83,11 +76,6 @@ export class AppComponent implements OnInit {
     }
 
     this.utilsService.getNextDownload();
-
-    // TODO:
-    const folders = await this.utilsService.prepareMenuFolders(null);
-    console.log('Folders: ', folders);
-    this.menuFolders = folders;
 
     const SubscriptionID = localStorage.getItem('onwi.SubscriptionID');
     if (SubscriptionID) {
@@ -130,26 +118,6 @@ export class AppComponent implements OnInit {
 
   changeNetworkStatus(status: string) {
     this.events.publish('changeNetworkStatus', status);
-  }
-
-  openFolder(folder: any, index: number) {
-    // console.log(folder, index);
-    // Tem filhos, abre ou fecha?
-    if (folder.open !== null) {
-      if (folder.open) {
-        this.menuFolders[index].open = false;
-        this.menuFolders[index].icon = 'assets/images/md-arrow-dropdown.svg';
-      } else {
-        this.menuFolders[index].open = true;
-        this.menuFolders[index].icon = 'assets/images/md-arrow-dropup.svg';
-      }
-    }
-  }
-
-  filterFiles(folder: any) {
-    // Abro a pasta ativa em library
-    this.events.publish('selectedFolder', folder);
-    this.menu.close();
   }
 
   ngOnInit() {
