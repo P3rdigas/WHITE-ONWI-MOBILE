@@ -29,13 +29,15 @@
     </ion-grid>
   </ion-toolbar>
 </ion-header>
+
 <ion-content [scrollEvents]="true" (ionScroll)="logScrolling($event)">
   <ion-grid>
     <ion-row>
-      <ion-col size="6" class="ion-padding-horizontal">
+      <!-- <ion-col size="6" class="ion-padding-horizontal">
         <ion-button mode="ios" color="primary" size="small" expand="block" (click)="openMenu()">Toggle Folders</ion-button>
-      </ion-col>
-      <ion-col size="5" offset="1" class="ion-padding-horizontal">
+      </ion-col> -->
+      <!-- <ion-col size="5" offset="1" class="ion-padding-horizontal"> -->
+      <ion-col size="12" class="ion-padding-horizontal ion-text-right">
         <ion-button mode="ios" color="medium" size="small" expand="block" (click)="refresh(true)">
           <ion-icon slot="start" src="assets/images/img-refresh.svg"></ion-icon> Refresh
         </ion-button>
@@ -63,27 +65,61 @@
       </ion-col>
     </ion-row>
   </ion-grid>
-  <!-- <ion-button (click)="testeDownload()" expand="block" shape="round">
-    BAIXAR ARQUIVO GRANDÃO
-  </ion-button> -->
 
-  <div class="div-folders">
-    <ion-text color="dark" *ngIf="documents === null">
-      <p>No files found.</p>
+  <!-- Folder tree view -->
+  <div>
+    <ion-text color="dark" *ngIf="!folders?.length && !fullDocuments?.length">
+      <p class="ion-padding">No files found.</p>
     </ion-text>
-    <ion-list lines="none" class="ion-no-margin">
-      <ion-item lines="full" *ngFor="let doc of documents; let i = index">
-        <ion-img [src]="doc.DocumentVersionIcon" slot="start" (click)="openFile(doc)"></ion-img>
-        <!-- <ion-icon [src]="doc.DocumentVersionIcon" slot="start"></ion-icon> -->
-        <ion-label (click)="openFile(doc)">
-          <b>{{ doc.DocumentTag }} </b>{{ doc.DocumentDesignation }}
-        </ion-label>
-        <ion-badge slot="end" color="medium" mode="ios">{{ doc.DocumentVersion }}</ion-badge>
-        <ion-icon src="assets/images/icon-star.svg" slot="end" *ngIf="(!doc.DocumentFavorite || doc.DocumentFavorite === false || doc.DocumentFavorite === 'false') && networkStatus !== 'offline'" style="font-size: 1em;" (click)="addFavorite(doc, i)"></ion-icon>
-        <ion-icon src="assets/images/icon-starfull.svg" slot="end" *ngIf="(doc.DocumentFavorite === true || doc.DocumentFavorite === 'true') && networkStatus !== 'offline'" style="font-size: 1em;" (click)="removeFavorite(doc, i)"></ion-icon>
-      </ion-item>
-    </ion-list>
+
+    <ng-container *ngFor="let folder of filteredFolders">
+      <ng-container *ngTemplateOutlet="folderTemplate; context: { folder: folder, depth: 0 }"></ng-container>
+    </ng-container>
   </div>
+
+  <!-- Recursive folder template -->
+  <ng-template #folderTemplate let-folder="folder" let-depth="depth">
+    <!-- Folder header -->
+    <ion-item lines="full" [style.padding-left.px]="depth * 16" (click)="toggleFolder(folder)" button>
+      <ion-icon slot="start"
+        [name]="folder.open ? 'folder-open-outline' : 'folder-outline'"
+        color="primary">
+      </ion-icon>
+      <ion-label>
+        <b>{{ folder.Name }}</b>
+        <span color="medium" style="font-size: 0.8em; margin-left: 8px;">
+          ({{ getTotalDocumentsOfFolder(folder) }})
+        </span>
+      </ion-label>
+      <ion-icon slot="end" [name]="folder.open ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
+    </ion-item>
+
+    <!-- Folder contents (subfolders + documents) -->
+    <div *ngIf="folder.open">
+      <!-- Sub-folders -->
+      <ng-container *ngFor="let child of folder.children">
+        <ng-container *ngTemplateOutlet="folderTemplate; context: { folder: child, depth: depth + 1 }"></ng-container>
+      </ng-container>
+
+      <!-- Documents in this folder -->
+      <ion-list lines="none" class="ion-no-margin">
+        <ion-item lines="full" *ngFor="let doc of getDocumentsOfFolder(folder); let i = index"
+          [style.padding-left.px]="(depth + 1) * 16">
+          <ion-img [src]="doc.DocumentVersionIcon" slot="start" (click)="openFile(doc)"></ion-img>
+          <ion-label (click)="openFile(doc)">
+            <b>{{ doc.DocumentTag }} </b>{{ doc.DocumentDesignation }}
+          </ion-label>
+          <ion-badge slot="end" color="medium" mode="ios">{{ doc.DocumentVersion }}</ion-badge>
+          <ion-icon src="assets/images/icon-star.svg" slot="end"
+            *ngIf="!doc.DocumentFavorite && networkStatus !== 'offline'"
+            style="font-size: 1em;" (click)="addFavorite(doc, i)"></ion-icon>
+          <ion-icon src="assets/images/icon-starfull.svg" slot="end"
+            *ngIf="(doc.DocumentFavorite === true || doc.DocumentFavorite === 'true') && networkStatus !== 'offline'"
+            style="font-size: 1em;" (click)="removeFavorite(doc, i)"></ion-icon>
+        </ion-item>
+      </ion-list>
+    </div>
+  </ng-template>
 
   <ion-fab vertical="bottom" horizontal="end" slot="fixed" (click)="scrollTop()" *ngIf="showScroll">
     <ion-fab-button>
@@ -91,6 +127,7 @@
     </ion-fab-button>
   </ion-fab>
 </ion-content>
+
 <ion-footer color="medium" mode="md" id="footer-database">
   <ion-toolbar>
     <ion-title>

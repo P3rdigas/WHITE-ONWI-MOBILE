@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { UtilsService } from '../services/utils/utils.service';
-import { MenuController, NavController } from '@ionic/angular';
+import { NavController } from '@ionic/angular';
 import { ApiService } from '../services/api/api.service';
 import { Events } from '../services/events/events';
 import { SqliteService } from '../services/sqlite/sqlite.service';
@@ -18,6 +18,8 @@ export class LibraryPage extends BaseDocumentPage implements OnInit {
   public tabsFolders = 'Library';
   public documents: any = null;
   public fullDocuments: any = null;
+  public folders: any[] = [];
+  public filteredFolders: any[] = [];
   public selectedFolder: any = null;
   public networkStatus: any = localStorage.getItem('onwi.networkStatus') ? localStorage.getItem('onwi.networkStatus') : 'offline';
   public search = '';
@@ -27,7 +29,6 @@ export class LibraryPage extends BaseDocumentPage implements OnInit {
     private apiService: ApiService,
     private events: Events,
     private sqlite: SqliteService,
-    private menu: MenuController,
     private navCtrl: NavController,
   ) {
     super();
@@ -40,14 +41,17 @@ export class LibraryPage extends BaseDocumentPage implements OnInit {
     this.subscription = session.subscription;
 
     // Filter folders
-    this.events.subscribe('selectedFolder', (folder) => {
-      // console.log('library selectedFolder', folder);
-      this.selectedFolder = folder;
-      this.updateFilters();
-    });
+    // this.events.subscribe('selectedFolder', (folder) => {
+    //   // console.log('library selectedFolder', folder);
+    //   this.selectedFolder = folder;
+    //   this.updateFilters();
+    // });
+    // this.events.subscribe('updateFolders', (folders) => {
+    //   this.menu.enable(true);
+    // });
     this.events.subscribe('updateFolders', (folders) => {
-      this.menu.enable(true);
-    });
+      this.loadFolders();
+    })
     this.events.subscribe('changeNetworkStatus', (status) => {
       // console.log('events.subscribe changeNetworkStatus', status);
       this.networkStatus = status;
@@ -62,8 +66,31 @@ export class LibraryPage extends BaseDocumentPage implements OnInit {
     });
   }
 
-  openMenu() {
-    this.menu.open();
+  toggleFolder(folder: any) {
+    folder.open = !folder.open;
+  }
+
+  selectFolder(folder: any) {
+    if (this.selectedFolder?.FolderID === folder.FolderID) {
+      // Clicking the same folder deselects it
+      this.selectedFolder = null;
+    } else {
+      this.selectedFolder = folder;
+    }
+
+    this.updateFilters();
+  }
+
+  getDocumentsOfFolder(folder: any): any[] {
+    if (!this.fullDocuments) return [];
+    return this.utilsService.filterFolder(this.fullDocuments, folder);
+  }
+
+  getTotalDocumentsOfFolder(folder: any): number {
+    if (!this.fullDocuments) return 0;
+    const direct = this.utilsService.filterFolder(this.fullDocuments, folder).length;
+    const children = folder.children?.reduce((sum: number, child: any) => sum + this.getTotalDocumentsOfFolder(child), 0) ?? 0;
+    return direct + children;
   }
 
   exit() {
@@ -80,19 +107,25 @@ export class LibraryPage extends BaseDocumentPage implements OnInit {
       this.utilsService.getPermissionsOffline();
       this.getDocumentsAPI();
     } else {
+      this.loadFolders();
       this.getDocuments();
     }
   }
 
   updateFilters() {
     this.documents = this.fullDocuments;
-    // Filtro por pasta se selecionado
-    if (this.selectedFolder) {
-      this.documents = this.utilsService.filterFolder(this.documents, this.selectedFolder);
-    }
-    // Filtro pela busca se preenchida
+
     if (this.search && this.search != '') {
-      this.documents = this.utilsService.filterDocumentSearch(this.documents, this.search);
+      // Filter matching docs
+      this.documents = this.utilsService.filterDocumentSearch(this.fullDocuments, this.search);
+
+      this.filteredFolders = this.filterFoldersWithResults(this.folders, this.documents);
+    } else {
+      this.closeAllFolders(this.folders);
+      this.filteredFolders = this.folders;
+      if (this.selectedFolder) {
+        this.documents = this.utilsService.filterFolder(this.documents, this.selectedFolder);
+      }
     }
   }
 
@@ -142,6 +175,33 @@ export class LibraryPage extends BaseDocumentPage implements OnInit {
     // Se não for viewer ou estiver offline redireciono para próxima aba
     if (!this.user.isViewer || this.networkStatus === 'offline') {
       this.navCtrl.navigateRoot(['/my-documents', 'nao']);
+    }
+  }
+
+  private async loadFolders() {
+    this.folders = await this.utilsService.prepareMenuFolders(null) || [];
+    this.filteredFolders = this.folders;
+  }
+
+  private filterFoldersWithResults(folders: any[], matchedDocs: any[]): any[] {
+    const result = [];
+    for (const folder of folders) {
+      const hasDirectDocs = matchedDocs.some(doc => doc.DocumentFolderID === folder.FolderID);
+      const matchingChildren = folder.children?.length
+        ? this.filterFoldersWithResults(folder.children, matchedDocs)
+        : [];
+
+      if (hasDirectDocs || matchingChildren.length) {
+        result.push({ ...folder, open: true, children: matchingChildren });
+      }
+    }
+    return result;
+  }
+
+  private closeAllFolders(folders: any[]) {
+    for (const folder of folders) {
+      folder.open = false;
+      if (folder.children?.length) this.closeAllFolders(folder.children);
     }
   }
 
