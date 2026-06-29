@@ -226,6 +226,9 @@ export class UtilsService {
           children.push(folder);
         }
       }
+
+      // Sort the folders alphabetically
+      children.sort((a, b) => a.Name.localCompare(b.Name));
     } catch (error) {
       console.log('prepareMenuFolders error', error);
     }

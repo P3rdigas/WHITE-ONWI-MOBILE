@@ -111,7 +111,7 @@ export class MyDocumentsPage extends BaseDocumentPage implements OnInit {
     this.documents = this.fullDocuments;
     // Filtro por pasta se selecionado
     if (this.selectedFolder) {
-      this.documents = this.utilsService.filterFolder(this.documents, this.selectedFolder.FolderID);
+      this.documents = this.utilsService.filterFolder(this.documents, this.selectedFolder);
     }
     // Filtro pela busca se preenchida
     if (this.search && this.search != '') {

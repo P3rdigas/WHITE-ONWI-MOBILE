@@ -58,10 +58,11 @@ export class ApiService {
     return firstValueFrom(this._http.get(url, this.getBasicOptions(username, userPassword)));
   }
 
+  // Get the folders by alphabetic order
   getDocumentsFolders(username: string, userPassword: string): Promise<any> {
     const subscription = this.getSubscription();
     
-    const url = encodeURI(subscription.OdataEndPoint + 'WEBDocumentsFolders');
+    const url = encodeURI(subscription.OdataEndPoint + 'WEBDocumentsFolders?$orderby=Name asc');
     console.log('getDocumentsFolders url', url);
 
     return firstValueFrom(this._http.get(url, this.getBasicOptions(username, userPassword)));

@@ -45,6 +45,9 @@ export class LibraryPage extends BaseDocumentPage implements OnInit {
       this.selectedFolder = folder;
       this.updateFilters();
     });
+    this.events.subscribe('updateFolders', (folders) => {
+      this.menu.enable(true);
+    });
     this.events.subscribe('changeNetworkStatus', (status) => {
       // console.log('events.subscribe changeNetworkStatus', status);
       this.networkStatus = status;
@@ -131,70 +134,6 @@ export class LibraryPage extends BaseDocumentPage implements OnInit {
   async removeFavorite(doc: any, indexDoc?: number) {
     if (this.networkStatus === 'offline') return;
     await this.utilsService.removeFavorite(doc, this.subscription);
-  }
-
-  // async testeDownload() {
-  //   let path: any;
-  //   if (this.platform.is('ios')) {
-  //     // TO-DO - Testar se sincronizando resolve o acesso externo dos arquivos
-  //     path = this.file.syncedDataDirectory;
-  //   } else {
-  //     // TO-DO - Permisson to write to external storage when it's not mounted on Marshmallow
-  //     path = this.file.externalRootDirectory;
-  //   }
-  //   // TO-DO - Se as opções acima não funcionarem, verificar possibilidade de perguntar ao usuário onde salvar o arquivo
-
-  //   // if (this.platform.is('ios')) {
-  //   //   path = this.file.documentsDirectory;
-  //   // } else {
-  //   //   path = this.file.dataDirectory;
-  //   // }
-  //   // console.log('this.file.externalDataDirectory (SDCARD - precisa de permissão): ', this.file.externalDataDirectory);
-  //   // console.log('this.file.dataDirectory NAAAAAO: ', this.file.dataDirectory);
-  //   // console.log('this.file.applicationDirectory NAAAAAO: ', this.file.applicationDirectory);
-  //   console.log('this.file.documentsDirectory: ', this.file.documentsDirectory);
-  //   path += encodeURI('FCOM ATR_Rev10.0_Jul2020_Versão Consolidada.pdf');
-  //   console.log('testeDownload path', path);
-
-  //   // DocumentID | DocumentVersionID
-  //   // this.apiService.getUrlFile(
-  //   //   this.subscription.OdataUser, this.subscription.OdataPassword,
-  //   //   this.user.ID,
-  //   //   '3ecf1dc8-707e-4aee-b03a-c1aadc9edbdf', '6d012874-b955-4e16-be2d-626cd6488112'
-  //   // )
-  //   // .then(response => {
-  //   //   console.log('testeDownload success', response);
-  //   //   this.apiService.downloadFile(response.url, path).then(response2 => {
-  //   //     console.log('testeDownload downloadFile BAIXOU', response2);
-  //   //   })
-  //   //   .catch(error => {
-  //   //     console.log('testeDownload downloadFile error', error);
-  //   //   });
-  //   // })
-  //   // .catch(error => {
-  //   //   console.log('testeDownload error', error);
-  //   // });
-
-  //   this.apiService.downloadFile(
-  //     this.subscription.OdataUser, this.subscription.OdataPassword,
-  //     this.user.ID,
-  //     '3ecf1dc8-707e-4aee-b03a-c1aadc9edbdf', '6d012874-b955-4e16-be2d-626cd6488112',
-  //     path
-  //   )
-  //   .then(response => {
-  //     console.log('testeDownload success', response);
-  //   })
-  //   .catch(error => {
-  //     console.log('testeDownload error', error);
-  //   });
-  // }
-
-  async testeDownload() {
-    const alert = await this.utilsService.createAlert(
-      'Unavailable',
-      'Native file download testing is disabled in browser migration mode.'
-    );
-    alert.present();
   }
 
   ionViewWillEnter() {
