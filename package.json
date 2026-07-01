@@ -9,7 +9,8 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "lint": "ng lint"
+    "lint": "ng lint",
+    "postinstall": "cp -r node_modules/ngx-extended-pdf-viewer/assets/ src/assets/assets/"
   },
   "private": true,
   "dependencies": {
@@ -41,6 +42,7 @@
     "br-mask": "^0.0.10",
     "guid-typescript": "^1.0.9",
     "ionicons": "^7.0.0",
+    "ngx-extended-pdf-viewer": "^28.0.3",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
     "zone.js": "~0.15.0"

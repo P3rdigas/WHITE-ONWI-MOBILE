@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { ToastController, LoadingController, AlertController, NavController, Platform } from '@ionic/angular';
+import { Router } from '@angular/router';
 import { ApiService } from '../api/api.service';
 import { Events } from '../events/events';
 import { Filesystem, Directory } from '@capacitor/filesystem';
@@ -26,6 +27,7 @@ export class UtilsService {
     private sqlite: SqliteService,
     private events: Events,
     private navCtrl: NavController,
+    private router: Router,
     // private file: File,
     // private iab: InAppBrowser,
     // private badge: Badge,
@@ -228,7 +230,7 @@ export class UtilsService {
       }
 
       // Sort the folders alphabetically
-      children.sort((a, b) => a.Name.localCompare(b.Name));
+      children.sort((a, b) => (a.Name ?? '').localeCompare(b.Name ?? ''));
     } catch (error) {
       console.log('prepareMenuFolders error', error);
     }
@@ -706,25 +708,55 @@ export class UtilsService {
       this.apiService.logDocumentOpen(doc, user.ID);
     }
 
-    try {
-      const directory = this.platform.is('ios') ? Directory.Documents : Directory.Data;
-      const { uri } = await Filesystem.getUri({ path: doc.DocumentVersionFileName, directory });
-      const mimeFile = this.mimeFileConvert(doc.DocumentVersionExtension);
+    const ext = doc.DocumentVersionExtension?.toLowerCase();
+    const directory = this.platform.is('ios') ? Directory.Documents : Directory.Data;
 
-      await FileOpener.open({ filePath: uri, contentType: mimeFile });
-      await loading.dismiss();
-    } catch (error: any) {
-      await loading.dismiss();
+    if (ext === 'pdf') {
+      try {
+        const fileData = await Filesystem.readFile({ path: doc.DocumentVersionFileName, directory });
 
-      if (error?.message === 'File does not exist') {
-        doc.DownloadStatus = 'Waiting';
-        await this.sqlite.updateDownloadStatus(doc.DocumentID, 'Waiting');
-        return this.openFile(doc, user, subscription, onDownloadSuccess); // retry to open the file (download and open)
+        await loading.dismiss();
+
+        this.router.navigate(['/pdf-viewer'], {
+          state: {
+            pdfBase64: fileData.data,
+            fileName: doc.DocumentVersionFileName,
+            canDownload: permissionResult.canDownload === 1,
+            canPrint: permissionResult.canPrint === 1
+          }
+        });
+      } catch (error: any) {
+        await loading.dismiss();
+
+        if (error?.message === 'File does not exist') {
+          doc.DownloadStatus = 'Waiting';
+          await this.sqlite.updateDownloadStatus(doc.DocumentID, 'Waiting');
+          return this.openFile(doc, user, subscription, onDownloadSuccess); // retry to open the file (download and open)
+        }
+
+        const alert = await this.createAlert('Something went wrong', 'Could not open PDF file');
+        await alert.present();
       }
+    } else {
+      try {
+        const { uri } = await Filesystem.getUri({ path: doc.DocumentVersionFileName, directory });
+        const mimeFile = this.mimeFileConvert(doc.DocumentVersionExtension);
 
-      const message = error?.status === 9 ? `No app found to read ${doc.DocumentVersionExtension} file` : 'Error on open file';
-      const alert = await this.createAlert('Something went wrong', message);
-      await alert.present();
+        await FileOpener.open({ filePath: uri, contentType: mimeFile });
+        await loading.dismiss();
+      } catch (error: any) {
+        await loading.dismiss();
+
+        if (error?.message === 'File does not exist') {
+          doc.DownloadStatus = 'Waiting';
+          await this.sqlite.updateDownloadStatus(doc.DocumentID, 'Waiting');
+          return this.openFile(doc, user, subscription, onDownloadSuccess); // retry to open the file (download and open)
+        }
+
+        const message = error?.status === 9 ? `No app found to read ${doc.DocumentVersionExtension} file` : 'Error on open file';
+        const alert = await this.createAlert('Something went wrong', message);
+        await alert.present();
+      }
     }
   }
 

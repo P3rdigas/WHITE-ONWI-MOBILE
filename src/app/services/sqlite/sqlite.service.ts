@@ -245,6 +245,7 @@ export class SqliteService {
     console.log('>>>>>>>>>>>>> updateDownloadStatus END <<<<<<<<<<<<<');
   }
 
+  // TODO: Maybe use aux methods to avoid code duplication for updating into myFavorites
   async updateFavoriteDocs(DocumentVersionFileID: any, DocumentFavoriteID: any, status: any, doc?: any): Promise<void> {
     const db = this.getDbOrThrow();
 

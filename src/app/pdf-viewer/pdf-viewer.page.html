@@ -1,0 +1,23 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/my-documents"></ion-back-button>
+    </ion-buttons>
+    <ion-title>{{ fileName }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ngx-extended-pdf-viewer
+    [base64Src]="pdfBase64"
+    [height]="'auto'"
+    [showToolbar]="true"
+    [showPrintButton]="canPrint"
+    [showDownloadButton]="canDownload"
+    [showOpenFileButton]="false"
+    [showDrawEditor]="false"
+    [showTextEditor]="false"
+    [showStampEditor]="false"
+    [showHighlightEditor]="false">
+  </ngx-extended-pdf-viewer>
+</ion-content>

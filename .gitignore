@@ -73,3 +73,6 @@ Thumbs.db
 
 # Production files
 src/environments/environment.ts
+
+# ngx-extended-pdf-viewer assets (generated, not source)
+src/assets/assets/
