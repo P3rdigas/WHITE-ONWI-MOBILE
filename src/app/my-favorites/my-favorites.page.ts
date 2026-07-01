@@ -1,5 +1,4 @@
 import { Component, OnInit } from '@angular/core';
-import { AlertController } from '@ionic/angular';
 import { ApiService } from '../services/api/api.service';
 import { Events } from '../services/events/events';
 import { UtilsService } from '../services/utils/utils.service';
@@ -22,7 +21,6 @@ export class MyFavoritesPage extends BaseDocumentPage implements OnInit {
   public search = '';
 
   constructor(
-    private alertController: AlertController,
     private utilsService: UtilsService,
     private apiService: ApiService,
     private sqlite: SqliteService,
@@ -85,7 +83,9 @@ export class MyFavoritesPage extends BaseDocumentPage implements OnInit {
       console.log('getMyFavorites', documents);
       this.fullDocuments = this.documents = null;
       if (documents && documents.length) {
-        this.fullDocuments = this.documents = documents;
+        this.fullDocuments = this.documents = [...documents].sort((a: any, b: any) => 
+          this.utilsService.getDocSortKey(a).localeCompare(this.utilsService.getDocSortKey(b))
+        );
       }
       // loading.dismiss();
     })
