@@ -96,6 +96,7 @@ export class SqliteService {
     }));
   }
 
+  // TODO: Use DocumentDate for distribution instead of DocumentReceivedDate (date that the user accepted the document)
   async updateMyDocumentsList(documents: any[]): Promise<void> {
     return this.upsertDocumentList('myDocuments', 'DocumentID', documents, (doc) => ({
       columns: [
@@ -104,7 +105,7 @@ export class SqliteService {
         'DocumentDesignation', 'DocumentReference', 'DocumentDescription', 'DocumentVersion',
         'DocumentVersionHash', 'DocumentVersionFileID', 'DocumentVersionIsLastVersion',
         'DocumentVersionExtension', 'DocumentVersionFileName', 'DocumentFolderID',
-        'DocumentURLUser', 'DocumentURLPassword'
+        'DocumentURLUser', 'DocumentURLPassword', 'DocumentReceivedDate'
       ],
       values: [
         doc.DocumentID, doc.DocumentFavorite, doc.DocumentFavoriteID, doc.DocumentType,
@@ -113,7 +114,7 @@ export class SqliteService {
         doc.DocumentVersion, doc.DocumentVersionHash, doc.DocumentVersionFileID,
         doc.DocumentVersionIsLastVersion ? 1 : 0, doc.DocumentVersionExtension,
         doc.DocumentVersionFileName, doc.DocumentFolderID, doc.DocumentURLUser,
-        doc.DocumentURLPassword
+        doc.DocumentURLPassword, doc.ReceivedDate
       ]
     }));
   }
@@ -336,7 +337,8 @@ export class SqliteService {
     }
     return this.db;
   }
-    
+  
+  // TODO: In myDocuments use DocumentDate for distribution instead of DocumentReceivedDate (date that the user accepted the document)
   private async createTables(): Promise<void> {
     const db = this.getDbOrThrow();
 
@@ -398,7 +400,8 @@ export class SqliteService {
         DocumentVersionFileName TEXT DEFAULT NULL,
         DocumentFolderID TEXT DEFAULT NULL,
         DocumentURLUser TEXT DEFAULT NULL,
-        DocumentURLPassword TEXT DEFAULT NULL
+        DocumentURLPassword TEXT DEFAULT NULL,
+        DocumentReceivedDate TEXT DEFAULT NULL
       );
 
       CREATE TABLE IF NOT EXISTS myFavorites (

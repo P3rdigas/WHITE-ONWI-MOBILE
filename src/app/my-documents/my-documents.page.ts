@@ -5,6 +5,7 @@ import { UtilsService } from '../services/utils/utils.service';
 import { SqliteService } from '../services/sqlite/sqlite.service';
 import { ActivatedRoute } from '@angular/router';
 import { BaseDocumentPage } from '../base-document.page';
+import { SortMode, ViewMode } from 'src/types/types';
 
 @Component({
   selector: 'app-my-documents',
@@ -21,7 +22,8 @@ export class MyDocumentsPage extends BaseDocumentPage implements OnInit {
   public folders: any[] = [];
   public filteredFolders: any[] = [];
   public networkStatus: any = localStorage.getItem('onwi.networkStatus') ? localStorage.getItem('onwi.networkStatus') : 'offline';
-  public viewMode: 'list' | 'folder' = 'folder';
+  public viewMode: ViewMode = 'folder';
+  public sortMode: SortMode = 'alphabetic';
   public search = '';
   public firstLogin = 'no';
   public statusUpdateAPI = {
@@ -76,6 +78,24 @@ export class MyDocumentsPage extends BaseDocumentPage implements OnInit {
   toggleViewMode() {
     this.viewMode = this.viewMode === 'folder' ? 'list' : 'folder';
     this.updateFilters();
+  }
+
+  toggleSortMode() {
+    if (this.sortMode === 'alphabetic') {
+      this.sortMode = 'newest';
+    } else if (this.sortMode === 'newest') {
+      this.sortMode = 'oldest';
+    } else {
+      this.sortMode = 'alphabetic';
+    }
+
+    this.applySortAndFilter();
+  }
+
+  get sortIcon(): string {
+    if (this.sortMode === 'newest') return 'arrow-down-outline';
+    if (this.sortMode === 'oldest') return 'arrow-up-outline';
+    return 'text-outline';
   }
 
   toggleFolder(folder: any) {
@@ -215,6 +235,34 @@ export class MyDocumentsPage extends BaseDocumentPage implements OnInit {
     }
 
     return result;
+  }
+
+  // TODO: Use DocumentDate for distribution instead of DocumentReceivedDate (date that the user accepted the document)
+  private applySortAndFilter() {
+    let sorted = [...this.fullDocuments];
+
+    for (const doc of this.fullDocuments) {
+      console.log("file:\n", JSON.stringify(doc, null, 2));
+    }
+
+    if (this.sortMode === 'alphabetic') {
+      sorted.sort((a: any, b: any) => this.utilsService.getDocSortKey(a).localeCompare(this.utilsService.getDocSortKey(b)));
+    } else if (this.sortMode === 'newest') {
+      sorted.sort((a: any, b: any) => {
+        const dateA = new Date(a.DocumentReceivedDate);
+        const dateB = new Date(b.DocumentReceivedDate);
+        return dateB.getTime() - dateA.getTime();
+      });
+    } else {
+      sorted.sort((a: any, b: any) => {
+        const dateA = new Date(a.DocumentReceivedDate);
+        const dateB = new Date(b.DocumentReceivedDate);
+        return dateA.getTime() - dateB.getTime();
+      });
+    }
+
+    this.fullDocuments = sorted;
+    this.updateFilters();
   }
 
 }
