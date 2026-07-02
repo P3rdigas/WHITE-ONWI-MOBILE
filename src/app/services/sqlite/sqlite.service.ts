@@ -127,7 +127,7 @@ export class SqliteService {
       'DocumentDesignation', 'DocumentReference', 'DocumentDescription',
       'DocumentVersion', 'DocumentVersionHash', 'DocumentVersionFileID',
       'DocumentVersionIsLastVersion', 'DocumentVersionExtension', 'DocumentVersionFileName',
-      'DocumentFolderID', 'DocumentURLUser', 'DocumentURLPassword'
+      'DocumentFolderID', 'DocumentURLUser', 'DocumentURLPassword', 'isReceived', 'wasUnderstood'
       ],
       values: [
         doc.DocumentID, doc.DocumentFavorite, doc.DocumentFavoriteID, doc.DocumentType,
@@ -136,7 +136,7 @@ export class SqliteService {
         doc.DocumentVersion, doc.DocumentVersionHash, doc.DocumentVersionFileID,
         doc.DocumentVersionIsLastVersion ? 1 : 0, doc.DocumentVersionExtension,
         doc.DocumentVersionFileName, doc.DocumentFolderID, doc.DocumentURLUser,
-        doc.DocumentURLPassword
+        doc.DocumentURLPassword, doc.isReceived ? 1 : 0, doc.wasUnderstood ? 1 : 0
       ]
     }));
   }
@@ -284,8 +284,10 @@ export class SqliteService {
             DocumentVersionFileName,
             DocumentFolderID,
             DocumentURLUser,
-            DocumentURLPassword
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            DocumentURLPassword,
+            isReceived INTEGER DEFAULT 0,
+            wasUnderstood INTEGER DEFAULT 0
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [
             doc.DocumentID,
             doc.DocumentFavorite,
@@ -306,7 +308,9 @@ export class SqliteService {
             doc.DocumentVersionFileName,
             doc.DocumentFolderID,
             doc.DocumentURLUser,
-            doc.DocumentURLPassword
+            doc.DocumentURLPassword,
+            doc.isReceived ? 1 : 0,
+            doc.wasUnderstood ? 1 : 0
           ]
         );
       }
@@ -426,7 +430,9 @@ export class SqliteService {
         DocumentVersionFileName TEXT DEFAULT NULL,
         DocumentFolderID TEXT DEFAULT NULL,
         DocumentURLUser TEXT DEFAULT NULL,
-        DocumentURLPassword TEXT DEFAULT NULL
+        DocumentURLPassword TEXT DEFAULT NULL,
+        isReceived INTEGER DEFAULT 0,
+        wasUnderstood INTEGER DEFAULT 0
       );
 
       CREATE TABLE IF NOT EXISTS lastDocsDistributed (

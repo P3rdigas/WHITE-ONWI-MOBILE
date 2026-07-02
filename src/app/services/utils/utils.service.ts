@@ -260,11 +260,23 @@ export class UtilsService {
 
     try {
       const response: any = await apiCall();
-      const docs = response?.value ?? [];
+      //console.log('API response:', JSON.stringify(response, null, 2));
+      
+      //const docs = response?.value ?? [];
+
+      // for (const doc of docs) {
+      //   console.log('Document from API: ', JSON.stringify(doc, null, 2));
+      // }
+
+      const docs = Array.isArray(response)
+        ? response
+        : Array.isArray(response?.value)
+          ? response.value
+          : [];
 
       if (docs.length) {
         let prepared = await this.prepareDocumentsNew(docs, listType);
-        console.log('prepareDocumentsNew', prepared);
+        console.log('prepareDocumentsNew: ', JSON.stringify(prepared, null, 2));
 
         if (postProcess && prepared?.length) {
           prepared = postProcess(prepared);
@@ -537,12 +549,10 @@ export class UtilsService {
 
     try {
       const response = await this.apiService.getFavoritesDocuments(subscription.OdataUser, subscription.OdataPassword, user.ID);
-
-      const result = response?.value ?? [];
       let documents = [];
 
-      if (result.length) {
-        const prepared = await this.prepareDocumentsNew(result, 'myFavorites');
+      if (response?.length) {
+        const prepared = await this.prepareDocumentsNew(response, 'myFavorites');
         documents = prepared?.length ? prepared : [];
       }
 

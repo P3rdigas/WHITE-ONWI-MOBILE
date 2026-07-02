@@ -17,6 +17,8 @@ export class MyFavoritesPage extends BaseDocumentPage implements OnInit {
   public tabsFolders = 'My Favorites';
   public documents: any = null;
   public fullDocuments: any = null;
+  public acceptedDocuments: any = [];
+  public notAcceptedDocuments: any = [];
   public networkStatus: any = 'offline';
   public search = '';
 
@@ -75,6 +77,7 @@ export class MyFavoritesPage extends BaseDocumentPage implements OnInit {
     });
   }
 
+  // TODO: Accepting files must triggers an update of the favorites list probably
   async getFavorites() {
     // const loading = await this.utilsService.createLoading();
     // loading.present();
@@ -82,10 +85,12 @@ export class MyFavoritesPage extends BaseDocumentPage implements OnInit {
     this.sqlite.getMyFavorites().then((documents: any) => {
       console.log('getMyFavorites', documents);
       this.fullDocuments = this.documents = null;
+      this.acceptedDocuments = [];
+      this.notAcceptedDocuments = [];
+
       if (documents && documents.length) {
-        this.fullDocuments = this.documents = [...documents].sort((a: any, b: any) => 
-          this.utilsService.getDocSortKey(a).localeCompare(this.utilsService.getDocSortKey(b))
-        );
+        this.fullDocuments = [...documents];
+        this.applySort();
       }
       // loading.dismiss();
     })
@@ -106,6 +111,19 @@ export class MyFavoritesPage extends BaseDocumentPage implements OnInit {
 
   ionViewWillEnter() {
     this.refresh(false);
+  }
+
+  private applySort() {
+    const sorted = [...this.fullDocuments].sort((a: any, b: any) =>
+      this.utilsService.getDocSortKey(a).localeCompare(this.utilsService.getDocSortKey(b))
+    );
+
+    for (const doc of sorted) {
+      console.log('Favorite Document: ', JSON.stringify(doc, null, 2));
+    }
+
+    this.notAcceptedDocuments = sorted.filter((doc: any) => !doc.isReceived || !doc.wasUnderstood);
+    this.acceptedDocuments = sorted.filter((doc: any) => doc.isReceived && doc.wasUnderstood);;
   }
 
 }

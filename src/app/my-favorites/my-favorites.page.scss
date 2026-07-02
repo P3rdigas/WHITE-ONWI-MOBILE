@@ -34,3 +34,21 @@ ion-header ion-toolbar #sair p {
   margin-top: 0px;
   margin-bottom: 2px;
 }
+
+.section-separator {
+  padding: 8px 16px 0;
+
+  p {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 4px;
+  }
+
+  hr {
+    border: none;
+    border-top: 1px solid var(--ion-color-medium);
+    margin: 0;
+  }
+}

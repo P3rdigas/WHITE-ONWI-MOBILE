@@ -86,13 +86,35 @@ export class ApiService {
     return firstValueFrom(this._http.get(url, this.getBasicOptions(username, userPassword)));
   }
 
-  getFavoritesDocuments(username: string, userPassword: string, userID: string): Promise<any> {
+  async getFavoritesDocuments(username: string, userPassword: string, userID: string): Promise<any[]> {
     const subscription = this.getSubscription();
 
-    const url = encodeURI(`${subscription.OdataEndPoint}WEBDocumentsFavorites?$filter=UserID eq ${userID} and DocumentStatusIsActive eq true`);
-    console.log('getFavoritesDocuments url', url);
+    // Get the favorite documents of the user
+    const urlF = encodeURI(`${subscription.OdataEndPoint}WEBDocumentsFavorites?$filter=UserID eq ${userID} and DocumentStatusIsActive eq true`);
+    console.log('getFavoritesDocuments url', urlF);
 
-    return firstValueFrom(this._http.get(url, this.getBasicOptions(username, userPassword)));
+    const favRes: any = await firstValueFrom(this._http.get(urlF, this.getBasicOptions(username, userPassword)));
+
+    const urlD = encodeURI(`${subscription.OdataEndPoint}WEBDocumentsDistribution?$filter=UserID eq ${userID}`);
+    console.log('getDistributedDocuments url', urlD);
+    const distRes: any = await firstValueFrom(this._http.get(urlD, this.getBasicOptions(username, userPassword)));
+
+    const favDocs = favRes?.value ?? favRes ?? [];
+    const distDocs = distRes?.value ?? distRes ?? [];
+
+    const distMap = new Map(
+      distDocs.map((doc: any) => [doc.DocumentID, doc])
+    );
+
+    return favDocs.map((doc: any) => {
+      const dist: any = distMap.get(doc.DocumentID);
+      
+      return {
+        ...doc,
+        isReceived: dist?.isReceived ?? false,
+        wasUnderstood: dist?.wasUnderstood ?? false
+      };
+    });
   }
 
   async postDocumentLog(username: string, userPassword: string, data: object): Promise<any> {
