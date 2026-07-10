@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { ToastController, LoadingController, AlertController, NavController, Platform } from '@ionic/angular';
+import { ToastController, LoadingController, AlertController, AlertButton, NavController, Platform } from '@ionic/angular';
 import { Router } from '@angular/router';
 import { ApiService } from '../api/api.service';
 import { Events } from '../events/events';
@@ -69,7 +69,7 @@ export class UtilsService {
     return toast;
   }
 
-  createAlert(title: string, text: string, optionButtons?: string[], subtitle?: string) {
+  createAlert(title: string, text: string, optionButtons?: (string | AlertButton)[], subtitle?: string) {
     // console.log('createAlert');
     if (optionButtons === undefined) {
       optionButtons = ['OK'];

@@ -1,9 +1,15 @@
+<!-- Documentation: https://pdfviewer.net/extended-pdf-viewer/getting-started -->
 <ion-header>
   <ion-toolbar>
     <ion-buttons slot="start">
       <ion-back-button defaultHref="/my-documents"></ion-back-button>
     </ion-buttons>
     <ion-title>{{ fileName }}</ion-title>
+    <ion-buttons slot="end" *ngIf="canDownload">
+      <ion-button (click)="saveAs()">
+        <ion-icon slot="icon-only" name="download-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
@@ -13,7 +19,7 @@
     [height]="'auto'"
     [showToolbar]="true"
     [showPrintButton]="canPrint"
-    [showDownloadButton]="canDownload"
+    [showDownloadButton]="false"
     [showOpenFileButton]="false"
     [showDrawEditor]="false"
     [showTextEditor]="false"
