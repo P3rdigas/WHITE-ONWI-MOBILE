@@ -22,6 +22,9 @@ export class LoginPage implements OnInit {
   private disabledForm: any = false;
   public networkStatus: any = localStorage.getItem('onwi.networkStatus') ? localStorage.getItem('onwi.networkStatus') : 'offline';
   private firstLogin = 'yes';
+  // TODO: Maybe use protected everywhere
+  protected isResetMode: boolean = false;
+  protected resetMessage: string = '';
 
   constructor(
     private formBuilder: FormBuilder,
@@ -193,6 +196,39 @@ export class LoginPage implements OnInit {
       const toast = await this.utilsService.createToast('Please, enter a valid email and password.');
       toast.present();
     }
+  }
+
+  toggleResetMode() {
+    this.isResetMode = !this.isResetMode;
+    this.resetMessage = '';
+  }
+
+  async requestReset() {
+    const email = this.loginForm.value.email;
+
+    if (!email || this.loginForm.get('email').invalid) {
+      const toast = await this.utilsService.createToast('Please, enter a valid email.');
+      toast.present();
+      return;
+    }
+
+    const obj = {
+      Email: email
+    }
+
+    const loading = await this.utilsService.createLoading();
+    loading.present();
+
+    this.apiService.requestPasswordReset(obj)
+      .then(async (response: any) => {
+        loading.dismiss();
+        this.resetMessage = 'If this email exists a reset link has been sent.'
+      })
+      .catch(async (error) => {
+        loading.dismiss();
+        const alert = await this.utilsService.createAlert('Something went wrong', 'Please, try again later.');
+        alert.present();
+      });
   }
 
   exit() {

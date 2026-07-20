@@ -58,6 +58,13 @@ export class ApiService {
     return firstValueFrom(this._http.get(url, this.getBasicOptions(username, userPassword)));
   }
 
+  requestPasswordReset(data: object): Promise<any> {
+    const url = encodeURI('http://192.168.1.72/api/Password/RequestReset');
+    console.log('requestPasswordReset url', url);
+
+    return firstValueFrom(this._http.post(url, data));
+  }
+
   // Get the folders by alphabetic order
   getDocumentsFolders(username: string, userPassword: string): Promise<any> {
     const subscription = this.getSubscription();

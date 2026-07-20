@@ -11,16 +11,18 @@
           
           <ion-row>
             <ion-col size="12">
-              <form class="ion-text-center ion-padding-bottom" [formGroup]="loginForm" (ngSubmit)="getUser()">
+              <form class="ion-text-center ion-padding-bottom" [formGroup]="loginForm" (ngSubmit)="isResetMode ? requestReset() : getUser()">
                 <ion-item lines="none">
                   <ion-label mode="md" position="floating">Email</ion-label>
                   <ion-input enterkeyhint="next" type="email" inputmode="email" formControlName="email" id="email" placeholder="Email" required="true"></ion-input>
                 </ion-item>
-                <ion-item lines="none">
+
+                <ion-item lines="none" *ngIf="!isResetMode">
                   <ion-label mode="md" position="floating">Password</ion-label>
                   <ion-input enterkeyhint="enter" type="password" inputmode="text" formControlName="password" id="password" placeholder="Password" required="true"></ion-input>
                 </ion-item>
-                <ion-item lines="none">
+
+                <ion-item lines="none" *ngIf="!isResetMode">
                   <div class="checkbox-inline">
                     <label>
                       <input type="checkbox" id="remember" formControlName="remember" mode="ios">
@@ -28,14 +30,27 @@
                     </label>
                   </div>
                 </ion-item>
+
                 <ion-grid>
                   <ion-row class="ion-justify-content-center">
                     <ion-col size="6">
-                      <!-- [disabled]="loginForm.invalid" [disabled]="!loginForm.valid" -->
-                      <ion-button mode="ios" color="primary" expand="block" type="submit">Login</ion-button>
+                      <ion-button mode="ios" color="primary" expand="block" type="submit">{{ isResetMode ? 'Send Reset Link' : 'Login' }}</ion-button>
+                    </ion-col>
+                  </ion-row>
+
+                  <ion-row class="ion-justify-content-center">
+                    <ion-col size="6">
+                      <ion-button mode="ios" fill="clear" size="small" type="button" (click)="toggleResetMode()">
+                        {{ isResetMode ? 'Back to Login' : 'Forgot Password?' }}
+                      </ion-button>
                     </ion-col>
                   </ion-row>
                 </ion-grid>
+
+                <p *ngIf="resetMessage" class="ion-text-center">
+                  {{ resetMessage }}
+                </p>
+
               </form>
             </ion-col>
           </ion-row>
