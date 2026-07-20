@@ -247,5 +247,5 @@ export class ApiService {
     }
 
     return JSON.parse(raw);
-}
+  }
 }
