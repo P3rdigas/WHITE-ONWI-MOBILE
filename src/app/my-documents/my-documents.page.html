@@ -69,29 +69,17 @@
     <ion-row>
       <ion-col size="12">
         <ion-segment id="tabs-folders" mode="md" scrollable value="{{tabsFolders}}">
-          <ion-segment-button [disabled]="!statusUpdateAPI.library && firstLogin == 'yes'" value="Library" [routerLink]="['/library']" routerDirection="root" *ngIf="user.isViewer && networkStatus !== 'offline'">
-            <ion-label>
-              Library
-              <ion-icon slot="end" name="cloud-download-outline" *ngIf="!statusUpdateAPI.library && firstLogin == 'yes'"></ion-icon>
-            </ion-label>
+          <ion-segment-button value="Library" [routerLink]="['/library']" routerDirection="root" *ngIf="user.isViewer">
+            <ion-label>Library</ion-label>
           </ion-segment-button>
           <ion-segment-button value="My Documents">
-            <ion-label>
-              My Documents
-              <ion-icon slot="end" name="cloud-download-outline" *ngIf="!statusUpdateAPI.library && firstLogin == 'yes'"></ion-icon>
-            </ion-label>
+            <ion-label>My Documents</ion-label>
           </ion-segment-button>
-          <ion-segment-button [disabled]="!statusUpdateAPI.library && firstLogin == 'yes'" value="My Favorites" [routerLink]="['/my-favorites']" routerDirection="root">
-            <ion-label>
-              My Favorites
-              <ion-icon slot="end" name="cloud-download-outline" *ngIf="!statusUpdateAPI.library && firstLogin == 'yes'"></ion-icon>
-            </ion-label>
+          <ion-segment-button value="My Favorites" [routerLink]="['/my-favorites']" routerDirection="root">
+            <ion-label>My Favorites</ion-label>
           </ion-segment-button>
-          <ion-segment-button [disabled]="!statusUpdateAPI.library && firstLogin == 'yes'" value="Last Docs Distributed" [routerLink]="['/last-docs']" routerDirection="root" *ngIf="networkStatus !== 'offline'">
-            <ion-label>
-              Last Docs Distributed
-              <ion-icon slot="end" name="cloud-download-outline" *ngIf="!statusUpdateAPI.library && firstLogin == 'yes'"></ion-icon>
-            </ion-label>
+          <ion-segment-button value="Last Docs Distributed" [routerLink]="['/last-docs']" routerDirection="root">
+            <ion-label>Last Docs Distributed</ion-label>
           </ion-segment-button>
         </ion-segment>
       </ion-col>
@@ -100,11 +88,8 @@
 
   <!-- LIST MODE -->
   <div *ngIf="viewMode === 'list'">
-    <ion-text color="dark" *ngIf="documents === null && firstLogin == 'no'">
+    <ion-text color="dark" *ngIf="documents === null">
       <p class="ion-padding">No files found.</p>
-    </ion-text>
-    <ion-text color="dark" *ngIf="documents === null && firstLogin == 'yes'">
-      <p class="ion-padding">Getting your files. Have a cup of coffee, soon all will be ready.</p>
     </ion-text>
     <ion-list lines="none" class="ion-no-margin">
       <ion-item lines="full" *ngFor="let doc of documents; let i = index">

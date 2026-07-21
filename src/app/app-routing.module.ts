@@ -22,7 +22,7 @@ const routes: Routes = [
     loadChildren: () => import('./library/library.module').then(m => m.LibraryPageModule)
   },
   {
-    path: 'my-documents/:firstLogin',
+    path: 'my-documents',
     loadChildren: () => import('./my-documents/my-documents.module').then(m => m.MyDocumentsPageModule)
   },
   {

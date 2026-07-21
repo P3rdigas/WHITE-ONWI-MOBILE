@@ -59,13 +59,13 @@
           <ion-segment-button value="Library">
             <ion-label>Library</ion-label>
           </ion-segment-button>
-          <ion-segment-button value="My Documents" [routerLink]="['/my-documents', 'nao']" routerDirection="root">
+          <ion-segment-button value="My Documents" [routerLink]="['/my-documents']" routerDirection="root">
             <ion-label>My Documents</ion-label>
           </ion-segment-button>
           <ion-segment-button value="My Favorites" [routerLink]="['/my-favorites']" routerDirection="root">
             <ion-label>My Favorites</ion-label>
           </ion-segment-button>
-          <ion-segment-button value="Last Docs Distributed" [routerLink]="['/last-docs']" routerDirection="root" *ngIf="networkStatus !== 'offline'">
+          <ion-segment-button value="Last Docs Distributed" [routerLink]="['/last-docs']" routerDirection="root">
             <ion-label>Last Docs Distributed</ion-label>
           </ion-segment-button>
         </ion-segment>

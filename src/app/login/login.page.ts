@@ -21,7 +21,7 @@ export class LoginPage implements OnInit {
   public subscription: any = JSON.parse(localStorage.getItem('onwi.Subscription'));
   private disabledForm: any = false;
   public networkStatus: any = localStorage.getItem('onwi.networkStatus') ? localStorage.getItem('onwi.networkStatus') : 'offline';
-  private firstLogin = 'yes';
+  private isLoggedIn: boolean = false;
   // TODO: Maybe use protected everywhere
   protected isResetMode: boolean = false;
   protected resetMessage: string = '';
@@ -75,7 +75,6 @@ export class LoginPage implements OnInit {
       }
       if (localStorage.getItem('onwi.Login')) {
         this.data = JSON.parse(localStorage.getItem('onwi.Login'));
-        this.firstLogin = 'no';
       }
 
       this.loginForm.patchValue({
@@ -99,10 +98,9 @@ export class LoginPage implements OnInit {
     if (this.loginForm.status === 'VALID' || this.loginForm.status === 'DISABLED') {
       if (this.networkStatus === 'offline') {
         if (localStorage.getItem('onwi.User')) {
-          this.firstLogin = 'no';
-          this.navCtrl.navigateRoot(['/my-documents', this.firstLogin]);
+          this.utilsService.loginCompleted = true;
+          this.navCtrl.navigateRoot(['/my-documents']);
         } else {
-          this.firstLogin = 'yes';
           const alert = await this.utilsService.createAlert('You need network connection', 'Since this is your first access you will need network connection to synchronize all the app content.');
           alert.present();
         }
@@ -111,7 +109,6 @@ export class LoginPage implements OnInit {
         loading.present();
 
         this.apiService.encryptPass(this.loginForm.value.password)
-        // .then(async (response) => {
         .then(async (response): Promise<any> => {
           const password: any = response;
           console.log(password);
@@ -135,10 +132,8 @@ export class LoginPage implements OnInit {
             if (this.result?.value?.length) {
               if (this.result.value[0].isEnabled) {
                 if (localStorage.getItem('onwi.UserID')) {
-                  this.firstLogin = 'no';
                   // Se já tem usuário salvo, mas é diferente do atual, apaga tudo e primeiro login
                   if (localStorage.getItem('onwi.UserID') !== this.result.value[0].ID) {
-                    console.log(3);
                     localStorage.removeItem('onwi.Folders');
                     localStorage.removeItem('onwi.PermissionsOffline');
                     localStorage.removeItem('onwi.Library');
@@ -146,7 +141,6 @@ export class LoginPage implements OnInit {
                     localStorage.removeItem('onwi.Favorites');
                     localStorage.removeItem('onwi.LastDocs');
                     this.sqlite.clearAllRecords();
-                    this.firstLogin = 'yes';
                   }
                 }
                 // Salva no localStorage
@@ -157,9 +151,15 @@ export class LoginPage implements OnInit {
                 } else {
                   localStorage.removeItem('onwi.Login');
                 }
-                this.sqlite.initBD().then(result => {
+                this.sqlite.initBD().then(async result => {
+                  if (this.networkStatus !== 'offline') {
+                    await this.utilsService.backgroundUpdateAll();
+                  }
+
                   loading.dismiss();
-                  this.navCtrl.navigateRoot(['/my-documents', this.firstLogin]);
+                  
+                  this.utilsService.loginCompleted = true;
+                  this.navCtrl.navigateRoot(['/my-documents']);
                 });
               } else {
                 loading.dismiss();

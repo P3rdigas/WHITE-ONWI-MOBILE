@@ -64,16 +64,22 @@ export class LastDocsPage extends BaseDocumentPage implements OnInit {
     this.utilsService.exitApp('interno', true);
   }
 
-  refresh(updateApi?) {
+  async refresh(updateApi: boolean) {
     this.networkStatus = localStorage.getItem('onwi.networkStatus');
     this.tabsFolders = 'Last Docs Distributed';
     this.search = '';
+
+    const loading = await this.utilsService.createLoading();
+    loading.present();
+
     if (updateApi) {
-      this.utilsService.getPermissionsOffline();
-      this.getDocumentsAPI();
+      await this.utilsService.getPermissionsOffline();
+      await this.getDocumentsAPI();
     } else {
-      this.getDocuments();
+      await this.getDocuments();
     }
+
+    loading.dismiss();
   }
 
   inputFilterSearch() {
@@ -103,21 +109,15 @@ export class LastDocsPage extends BaseDocumentPage implements OnInit {
   }
 
   async getDocuments() {
-    // const loading = await this.utilsService.createLoading();
-    // loading.present();
-
     this.sqlite.getLastDocsDistributed().then((documents: any) => {
-      console.log('this.sqlite.getLastDocsDistributed', documents);
       if (documents && documents.length) {
         this.fullDocuments = this.documents = documents;
       } else {
         this.fullDocuments = this.documents = null;
       }
-      // loading.dismiss();
     })
     .catch((error) => {
       console.log('getDocuments - sqlite.getLastDocsDistributed catch', error);
-      // loading.dismiss();
     });
   }
 
@@ -156,11 +156,11 @@ export class LastDocsPage extends BaseDocumentPage implements OnInit {
   }
 
   ionViewWillEnter() {
-    this.networkStatus = localStorage.getItem('onwi.networkStatus');
-    // Se estiver offline redireciono para próxima aba
-    if (this.networkStatus === 'offline') {
-      this.navCtrl.navigateRoot(['/my-documents', 'nao']);
-    }
+    // this.networkStatus = localStorage.getItem('onwi.networkStatus');
+    // // Se estiver offline redireciono para próxima aba
+    // if (this.networkStatus === 'offline') {
+    //   this.navCtrl.navigateRoot(['/my-documents']);
+    // }
     this.refresh(false);
   }
 }

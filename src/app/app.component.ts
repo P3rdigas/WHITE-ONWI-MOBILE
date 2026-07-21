@@ -21,6 +21,7 @@ import { Network } from '@capacitor/network';
 export class AppComponent implements OnInit {
   public appVersionName: any;
   public networkStatus: any = 'offline';
+  private previousNetworkStatus: string = 'offline';
 
   constructor(
     private platform: Platform,
@@ -54,17 +55,36 @@ export class AppComponent implements OnInit {
     this.updateNetworkStatus(networkState.connected, networkState.connectionType);
 
     // Listen for changes
-    Network.addListener('networkStatusChange', status => {
+    Network.addListener('networkStatusChange', async (status) => {
+      const wasOffline = this.previousNetworkStatus === 'offline';
       this.updateNetworkStatus(status.connected, status.connectionType);
+      this.previousNetworkStatus = this.networkStatus;
       console.log('networkStatusChange', this.networkStatus);
 
-      if (this.networkStatus === 'offline') {
-        if (this.router.url === '/library' || this.router.url === '/last-docs') {
-          this.navCtrl.navigateRoot(['/my-documents', 'nao']);
-        }
-      } else {
-        this.utilsService.getPermissionsOffline();
+      // If the user has not logged in yet or continue to be online don't fire the update
+      if (!this.utilsService.loginCompleted || !wasOffline) return;
+
+      if (status.connected && status.connectionType === 'wifi') {
+        this.utilsService.backgroundUpdateAll();
+      } else if (status.connected && status.connectionType !== 'wifi') {
+        const alert = await this.alertController.create({
+          header: 'Use mobile data?',
+          message: 'Do you want to update you documents using mobile data?',
+          buttons: [
+            { text: 'No', handler: () => { } },
+            { text: 'Yes', handler: () => { this.utilsService.backgroundUpdateAll(); } }
+          ]
+        });
+        await alert.present();
       }
+
+      // if (this.networkStatus === 'offline') {
+      //   if (this.router.url === '/library' || this.router.url === '/last-docs') {
+      //     this.navCtrl.navigateRoot(['/my-documents', 'nao']);
+      //   }
+      // } else {
+      //   this.utilsService.getPermissionsOffline();
+      // }
     });
 
     try {
@@ -75,45 +95,43 @@ export class AppComponent implements OnInit {
       return;
     }
 
-    this.utilsService.getNextDownload();
-
     const SubscriptionID = localStorage.getItem('onwi.SubscriptionID');
     if (SubscriptionID) {
       this.router.navigate(['login']);
     }
 
-    // Updates when opening the app
-    if (localStorage.getItem('onwi.User') && this.networkStatus !== 'offline') {
-      // Updates all tables in background when opening the app
-      this.utilsService.getPermissionsOffline();
-      setTimeout(() => {
-        this.utilsService.backgroundUpdateMyDocuments();
-      }, 1 * 60 * 1000); // 1 minute after
-      setTimeout(() => {
-        this.utilsService.backgroundUpdateFavorites();
-      }, 3 * 60 * 1000); // 3 minutes after
-      setTimeout(() => {
-        this.utilsService.backgroundUpdateLastDocsDistributed();
-      }, 5 * 60 * 1000); // 5 minutes after
-    }
+    // // Updates when opening the app
+    // if (localStorage.getItem('onwi.User') && this.networkStatus !== 'offline') {
+    //   // Updates all tables in background when opening the app
+    //   this.utilsService.getPermissionsOffline();
+    //   setTimeout(() => {
+    //     this.utilsService.backgroundUpdateMyDocuments();
+    //   }, 1 * 60 * 1000); // 1 minute after
+    //   setTimeout(() => {
+    //     this.utilsService.backgroundUpdateFavorites();
+    //   }, 3 * 60 * 1000); // 3 minutes after
+    //   setTimeout(() => {
+    //     this.utilsService.backgroundUpdateLastDocsDistributed();
+    //   }, 5 * 60 * 1000); // 5 minutes after
+    // }
 
-    // Updates periodically (10 MIN)
-    setInterval(() => {
-      // Updates all tables in background periodically
-      if (localStorage.getItem('onwi.User') && this.networkStatus !== 'offline') {
-        this.utilsService.getPermissionsOffline();
-        this.utilsService.backgroundUpdateLibrary();
-        setTimeout(() => {
-          this.utilsService.backgroundUpdateMyDocuments();
-        }, 1 * 60 * 1000); // 1 minute after
-        setTimeout(() => {
-          this.utilsService.backgroundUpdateFavorites();
-        }, 3 * 60 * 1000); // 3 minutes after
-        setTimeout(() => {
-          this.utilsService.backgroundUpdateLastDocsDistributed();
-        }, 5 * 60 * 1000); // 5 minutes after
-      }
-    }, 10 * 60 * 1000); // every 10 minutes
+    // // Updates periodically (10 MIN)
+    // setInterval(() => {
+    //   // Updates all tables in background periodically
+    //   if (localStorage.getItem('onwi.User') && this.networkStatus !== 'offline') {
+    //     this.utilsService.getPermissionsOffline();
+    //     this.utilsService.backgroundUpdateLibrary();
+    //     setTimeout(() => {
+    //       this.utilsService.backgroundUpdateMyDocuments();
+    //     }, 1 * 60 * 1000); // 1 minute after
+    //     setTimeout(() => {
+    //       this.utilsService.backgroundUpdateFavorites();
+    //     }, 3 * 60 * 1000); // 3 minutes after
+    //     setTimeout(() => {
+    //       this.utilsService.backgroundUpdateLastDocsDistributed();
+    //     }, 5 * 60 * 1000); // 5 minutes after
+    //   }
+    // }, 10 * 60 * 1000); // every 10 minutes
   }
 
   changeNetworkStatus(status: string) {

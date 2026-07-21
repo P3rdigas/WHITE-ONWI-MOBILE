@@ -77,18 +77,24 @@ export class LibraryPage extends BaseDocumentPage implements OnInit {
     this.utilsService.exitApp('interno', true);
   }
 
-  refresh(updateApi?) {
+  async refresh(updateApi: boolean) {
     this.tabsFolders = 'Library';
     this.networkStatus = localStorage.getItem('onwi.networkStatus');
     this.search = '';
+
+    const loading = await this.utilsService.createLoading();
+    loading.present();
+
     if (updateApi) {
-      this.utilsService.updateFolders();
-      this.utilsService.getPermissionsOffline();
-      this.getDocumentsAPI();
+      await this.utilsService.updateFolders();
+      await this.utilsService.getPermissionsOffline();
+      await this.getDocumentsAPI();
     } else {
-      this.loadFolders();
-      this.getDocuments();
+      await this.loadFolders();
+      await this.getDocuments();
     }
+
+    loading.dismiss();
   }
 
   updateFilters() {
@@ -150,9 +156,13 @@ export class LibraryPage extends BaseDocumentPage implements OnInit {
   ionViewWillEnter() {
     this.refresh(false);
 
-    // Se não for viewer ou estiver offline redireciono para próxima aba
-    if (!this.user.isViewer || this.networkStatus === 'offline') {
-      this.navCtrl.navigateRoot(['/my-documents', 'nao']);
+    // // Se não for viewer ou estiver offline redireciono para próxima aba
+    // if (!this.user.isViewer || this.networkStatus === 'offline') {
+    //   this.navCtrl.navigateRoot(['/my-documents']);
+    // }
+
+    if (!this.user.isViewer) {
+      this.navCtrl.navigateRoot(['/my-documents']);
     }
   }
 

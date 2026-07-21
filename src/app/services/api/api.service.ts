@@ -66,7 +66,7 @@ export class ApiService {
   }
 
   // Get the folders by alphabetic order
-  getDocumentsFolders(username: string, userPassword: string): Promise<any> {
+  async getDocumentsFolders(username: string, userPassword: string): Promise<any> {
     const subscription = this.getSubscription();
     
     const url = encodeURI(subscription.OdataEndPoint + 'WEBDocumentsFolders?$orderby=Name asc');
@@ -169,7 +169,7 @@ export class ApiService {
     return firstValueFrom(this._http.patch(url, data, this.getBasicOptions(username, userPassword, false)));
   }
 
-  getPermissionsDocuments(username: string, userPassword: any, userID: any): Promise<any> {
+  async getPermissionsDocuments(username: string, userPassword: any, userID: any): Promise<any> {
     const subscription = this.getSubscription();
 
     const url = encodeURI(subscription.OdataEndPoint + 'WEBDocumentsPermissions?$filter=UserID eq ' + userID + ' and canDownload eq true');

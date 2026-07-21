@@ -51,16 +51,22 @@ export class MyFavoritesPage extends BaseDocumentPage implements OnInit {
     this.utilsService.exitApp('interno', true);
   }
 
-  refresh(updateApi?) {
+  async refresh(updateApi: boolean) {
     this.tabsFolders = 'My Favorites';
-    this.search = '';
     this.networkStatus = localStorage.getItem('onwi.networkStatus');
+    this.search = '';
+
+    const loading = await this.utilsService.createLoading();
+    loading.present();
+
     if (updateApi) {
-      this.utilsService.getPermissionsOffline();
-      this.getFavoritesAPI();
+      await this.utilsService.getPermissionsOffline();
+      await this.getFavoritesAPI();
     } else {
-      this.getFavorites();
+      await this.getFavorites();
     }
+
+    loading.dismiss();
   }
 
   inputFilterSearch() {
@@ -83,7 +89,6 @@ export class MyFavoritesPage extends BaseDocumentPage implements OnInit {
     // loading.present();
 
     this.sqlite.getMyFavorites().then((documents: any) => {
-      console.log('getMyFavorites', documents);
       this.fullDocuments = this.documents = null;
       this.acceptedDocuments = [];
       this.notAcceptedDocuments = [];
@@ -117,10 +122,6 @@ export class MyFavoritesPage extends BaseDocumentPage implements OnInit {
     const sorted = [...this.fullDocuments].sort((a: any, b: any) =>
       this.utilsService.getDocSortKey(a).localeCompare(this.utilsService.getDocSortKey(b))
     );
-
-    for (const doc of sorted) {
-      console.log('Favorite Document: ', JSON.stringify(doc, null, 2));
-    }
 
     this.notAcceptedDocuments = sorted.filter((doc: any) => !doc.isReceived || !doc.wasUnderstood);
     this.acceptedDocuments = sorted.filter((doc: any) => doc.isReceived && doc.wasUnderstood);;

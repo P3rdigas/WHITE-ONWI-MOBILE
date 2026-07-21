@@ -25,10 +25,6 @@ export class MyDocumentsPage extends BaseDocumentPage implements OnInit {
   public viewMode: ViewMode = 'folder';
   public sortMode: SortMode = 'alphabetic';
   public search = '';
-  public firstLogin = 'no';
-  public statusUpdateAPI = {
-    myDocuments: false, myFavorites: false, library: false, lastDocs: false, folders: false
-  };
 
   constructor(
     private utilsService: UtilsService,
@@ -52,26 +48,15 @@ export class MyDocumentsPage extends BaseDocumentPage implements OnInit {
     });
     this.events.subscribe('updateFolders', (folders) => {
       // console.log('events.subscribe updateFolders MyDocuments', folders);
-      this.statusUpdateAPI.folders = true;
       this.loadFolders();
     });
     this.events.subscribe('updateMyDocuments', (folders) => {
       // console.log('events.subscribe updateMyDocuments MyDocuments', folders);
-      this.statusUpdateAPI.myDocuments = true;
       this.getDocuments();
-    });
-    this.events.subscribe('updateLibrary', (folders) => {
-      // console.log('events.subscribe updateLibrary MyDocuments', folders);
-      this.statusUpdateAPI.library = true;
     });
     this.events.subscribe('updateMyFavorites', (folders) => {
       // console.log('events.subscribe updateMyFavorites MyDocuments', folders);
-      this.statusUpdateAPI.myFavorites = true;
       this.getDocuments();
-    });
-    this.events.subscribe('updateLastDocs', (folders) => {
-      // console.log('events.subscribe updateLastDocs MyDocuments', folders);
-      this.statusUpdateAPI.lastDocs = true;
     });
   }
 
@@ -118,32 +103,38 @@ export class MyDocumentsPage extends BaseDocumentPage implements OnInit {
     this.utilsService.exitApp('interno', true);
   }
 
-  refresh(updateApi?) {
+  async refresh(updateApi: boolean) {
     this.tabsFolders = 'My Documents';
     this.networkStatus = localStorage.getItem('onwi.networkStatus');
     this.search = '';
+
+    const loading = await this.utilsService.createLoading();
+    loading.present();
+
     if (updateApi) {
-      this.utilsService.updateFolders();
-      this.utilsService.getPermissionsOffline();
-      this.getDocumentsAPI();
+      await this.utilsService.updateFolders();
+      await this.utilsService.getPermissionsOffline();
+      await this.getDocumentsAPI();
     } else {
-      this.loadFolders();
-      this.getDocuments();
+      await this.loadFolders();
+      await this.getDocuments();
     }
+
+    loading.dismiss();
   }
 
   updateFilters() {
-    this.documents = this.fullDocuments;
+    this.documents = this.fullDocuments ?? [];
 
     if (this.viewMode === 'folder') {
       if (this.search && this.search !== '') {
-        this.documents = this.utilsService.filterDocumentSearch(this.fullDocuments, this.search);
+        this.documents = this.utilsService.filterDocumentSearch(this.fullDocuments ?? [], this.search);
 
         // Open folders by default
         this.filteredFolders = this.filterFoldersWithResults(this.folders, this.documents, true);
       } else {
         // Close folders by default
-        this.filteredFolders = this.filterFoldersWithResults(this.folders, this.fullDocuments, false);
+        this.filteredFolders = this.filterFoldersWithResults(this.folders, this.fullDocuments ?? [], false);
       }
     } else {
       if (this.search && this.search !== '') {
@@ -158,14 +149,12 @@ export class MyDocumentsPage extends BaseDocumentPage implements OnInit {
       apiCall: () => this.apiService.getDistributedDocuments(this.subscription.OdataUser, this.subscription.OdataPassword, this.user.ID),
       listType: 'myDocuments',
       storeCall: (docs) => this.sqlite.updateMyDocumentsList(docs),
-      onSuccess: () => { this.statusUpdateAPI.myDocuments = true; },
       refreshCall: () => this.getDocuments()
     });
   }
 
   async getDocuments() {
     this.sqlite.getMyDocuments().then((documents: any) => {
-      console.log('getMyDocuments', documents);
       this.fullDocuments = this.documents = null;
       if (documents && documents.length) {
         this.fullDocuments = this.documents = [...documents].sort((a: any, b: any) => 
@@ -195,25 +184,7 @@ export class MyDocumentsPage extends BaseDocumentPage implements OnInit {
   }
 
   async ionViewWillEnter() {
-
-    //this.firstLogin = await firstValueFrom(this.route.paramMap.pipe(map(params => params.get('firstLogin'))));
-
-    this.route.paramMap.subscribe(params => {
-      this.firstLogin = params.get('firstLogin');
-    });
-    console.log('firstLogin', this.firstLogin);
-
     this.refresh(false);
-    
-    if (this.firstLogin === 'yes') {
-      // Update Permissions, Folders, MyDocuments, MyFavorites, Library, Last Docs
-      this.utilsService.getPermissionsOffline();
-      this.utilsService.updateFolders();
-      this.utilsService.backgroundUpdateMyDocuments();
-      this.utilsService.backgroundUpdateFavorites();
-      this.utilsService.backgroundUpdateLibrary();
-      this.utilsService.backgroundUpdateLastDocsDistributed();
-    }
   }
 
   private async loadFolders() {

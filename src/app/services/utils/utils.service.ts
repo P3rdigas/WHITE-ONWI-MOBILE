@@ -17,6 +17,7 @@ import { FileOpener } from '@capacitor-community/file-opener';
 })
 export class UtilsService {
   public updatingDownload = false;
+  public loginCompleted: boolean = false;
 
   constructor(
     private platform: Platform,
@@ -113,13 +114,8 @@ export class UtilsService {
 
     const subscription = JSON.parse(subscriptionRaw);
 
-    const loading = await this.createLoading();
-    loading.present();
-
-    this.apiService.getDocumentsFolders(subscription.OdataUser, subscription.OdataPassword)
+    await this.apiService.getDocumentsFolders(subscription.OdataUser, subscription.OdataPassword)
     .then(async (response: any) => {
-      await loading.dismiss();
-
       const folders = response?.value ?? [];
 
       await this.sqlite.updateFoldersList(folders);
@@ -133,7 +129,6 @@ export class UtilsService {
     })
     .catch(async (error) => {
       console.log('updateFolders error', error);
-      await loading.dismiss();
       return this.publishFolders();
     });
   }
@@ -175,11 +170,10 @@ export class UtilsService {
     apiCall: () => Promise<any>;
     listType: string;
     storeCall: (docs: any[] | null) => Promise<void>;
-    onSuccess?: () => void;
     postProcess?: (docs: any[]) => any[];
     refreshCall: () => Promise<void> | null;
   }): Promise<void> {
-    const { networkStatus, apiCall, listType, storeCall, onSuccess, postProcess, refreshCall } = options;
+    const { networkStatus, apiCall, listType, storeCall, postProcess, refreshCall } = options;
 
     if (networkStatus === 'offline') {
       this.createToast('Connect on wifi or mobile network to update the documents list.');
@@ -192,13 +186,6 @@ export class UtilsService {
 
     try {
       const response: any = await apiCall();
-      //console.log('API response:', JSON.stringify(response, null, 2));
-      
-      //const docs = response?.value ?? [];
-
-      // for (const doc of docs) {
-      //   console.log('Document from API: ', JSON.stringify(doc, null, 2));
-      // }
 
       const docs = Array.isArray(response)
         ? response
@@ -208,14 +195,9 @@ export class UtilsService {
 
       if (docs.length) {
         let prepared = await this.prepareDocumentsNew(docs, listType);
-        console.log('prepareDocumentsNew: ', JSON.stringify(prepared, null, 2));
 
         if (postProcess && prepared?.length) {
           prepared = postProcess(prepared);
-        }
-
-        if (onSuccess) {
-          onSuccess();
         }
 
         await storeCall(prepared?.length ? prepared : null);
@@ -399,36 +381,44 @@ export class UtilsService {
     });
   }
 
-  backgroundUpdateLibrary() {
+  async backgroundUpdateLibrary() {
     console.log('~~~~~~~~~~~~~~~~ backgroundUpdateLibrary BEGAN ~~~~~~~~~~~~~~~~');
-    const subscription = JSON.parse(localStorage.getItem('onwi.Subscription'));
-    let documents = null;
-    
-    this.apiService.getDocuments(subscription.OdataUser, subscription.OdataPassword).then(async (response) => {
-      const result: any = response;
+    const subscriptionRaw = localStorage.getItem('onwi.Subscription');
+    const userRaw = localStorage.getItem('onwi.User');
 
-      if (JSON.parse(result.data).value.length !== 0) {
-        await this.prepareDocumentsNew(JSON.parse(result.data).value, 'library').then((response2) => {
-          if (response2 && response2.length) {
-            documents = response2;
-            // Filter by the last version
-            documents = this.filterDocumentLastVersion(documents);
-          } else {
-            documents = null;
-          }
-        });
+    if (!subscriptionRaw || !userRaw) {
+      console.warn('backgroundUpdateLibrary aborted: missing subscription or user', subscriptionRaw);
+      return;
+    }
+
+    const user = JSON.parse(userRaw);
+    // If the user cannot see the library tab just ignore it
+    if (!user.isViewer) {
+      return;
+    }
+
+    const subscription = JSON.parse(subscriptionRaw);
+
+    try {
+      const response = await this.apiService.getDocuments(subscription.OdataUser, subscription.OdataPassword);
+      const values = response?.value ?? [];
+      let documents = [];
+
+      if (values.length) {
+        const prepared = await this.prepareDocumentsNew(values, 'library');
+        documents = prepared?.length ? this.filterDocumentLastVersion(prepared) : [];
       }
-      // Save in localStorage
-      this.sqlite.updateLibraryList(documents).then(response2 => this.events.publish('updateLibrary', documents));
-    })
-    .catch(async (error) => {
+
+      await this.sqlite.updateLibraryList(documents);
+      this.events.publish('updateLibrary', documents);
+    } catch(error) {
       console.log(error);
       this.events.publish('updateLibrary', null);
-    });
-    console.log('~~~~~~~~~~~~~~~~ backgroundUpdateLibrary ENDED ~~~~~~~~~~~~~~~~');
+    }
+    console.log('~~~~~~~~~~~~~~~~ backgroundUpdateLibrary END ~~~~~~~~~~~~~~~~');
   }
 
-  backgroundUpdateMyDocuments() {
+  async backgroundUpdateMyDocuments() {
     console.log('~~~~~~~~~~~~~~~~ backgroundUpdateMyDocuments BEGAN ~~~~~~~~~~~~~~~~');
     const subscriptionRaw = localStorage.getItem('onwi.Subscription');
     const userRaw = localStorage.getItem('onwi.User');
@@ -440,29 +430,23 @@ export class UtilsService {
 
     const subscription = JSON.parse(subscriptionRaw);
     const user = JSON.parse(userRaw);
-    let documents = null;
 
-    this.apiService.getDistributedDocuments(subscription.OdataUser, subscription.OdataPassword, user.ID)
-    .then(async (response) => {
-      const result: any = response;
-      // console.log('backgroundUpdateMyDocuments getDistributedDocuments', JSON.parse(result.data).value);
-      if (JSON.parse(result.data).value.length !== 0) {
-        await this.prepareDocumentsNew(JSON.parse(result.data).value, 'myDocuments').then((response2) => {
-          if (response2 && response2.length) {
-            documents = response2;
-          } else {
-            documents = null;
-          }
-        });
+    try {
+      const response = await this.apiService.getDistributedDocuments(subscription.OdataUser, subscription.OdataPassword, user.ID);
+      const values = response?.value ?? [];
+      let documents = [];
+
+      if (values.length) {
+        const prepared = await this.prepareDocumentsNew(values, 'myDocuments');
+        documents = prepared?.length ? prepared : [];
       }
 
-      // Save in localStorage
-      this.sqlite.updateMyDocumentsList(documents).then(response2 => this.events.publish('updateMyDocuments', documents));
-    })
-    .catch(async (error) => {
+      await this.sqlite.updateMyDocumentsList(documents);
+      this.events.publish('updateMyDocuments', documents);
+    } catch(error) {
       console.log(error);
-      this.events.publish('updateLibrary', null);
-    });
+      this.events.publish('updateMyDocuments', null);
+    }
     console.log('~~~~~~~~~~~~~~~~ backgroundUpdateMyDocuments END ~~~~~~~~~~~~~~~~');
   }
 
@@ -492,13 +476,12 @@ export class UtilsService {
       this.events.publish('updateMyFavorites', documents);
     } catch(error) {
       console.log(error);
-      this.events.publish('updateLibrary', null);
+      this.events.publish('updateMyFavorites', null);
     }
     console.log('~~~~~~~~~~~~~~~~ backgroundUpdateFavorites END ~~~~~~~~~~~~~~~~');
   }
 
-  // TODO:
-  backgroundUpdateLastDocsDistributed() {
+  async backgroundUpdateLastDocsDistributed() {
     console.log('~~~~~~~~~~~~~~~~ backgroundUpdateLastDocsDistributed BEGAN ~~~~~~~~~~~~~~~~');
     const subscriptionRaw = localStorage.getItem('onwi.Subscription');
     const userRaw = localStorage.getItem('onwi.User');
@@ -510,37 +493,45 @@ export class UtilsService {
 
     const subscription = JSON.parse(subscriptionRaw);
     const user = JSON.parse(userRaw);
-    let documents = null;
-    this.apiService.getToApproveDocuments(subscription.OdataUser, subscription.OdataPassword, user.ID)
-    .then(async (response) => {
-      const result: any = response;
-      // console.log(JSON.parse(result.data).value);
-      // this.localNotifications.clear(9999);
-      if (JSON.parse(result.data).value.length !== 0) {
-        await this.prepareDocumentsNew(JSON.parse(result.data).value, 'lastDocsDistributed').then((response2) => {
-          if (response2 && response2.length) {
-            documents = response2;
-            // this.localNotifications.schedule({
+
+    try {
+      const response = await this.apiService.getToApproveDocuments(subscription.OdataUser, subscription.OdataPassword, user.ID);
+      const values = response?.value ?? [];
+      let documents = [];
+
+      if (values?.length) {
+        // this.localNotifications.clear(9999);
+        const prepared = await this.prepareDocumentsNew(values, 'lastDocsDistributed');
+        documents = prepared?.length ? prepared : [];
+        // this.localNotifications.schedule({
             //   id: 9999,
             //   title: 'Documents to approve',
             //   text: 'Check the Last Docs Distribuited to approve your documents. You have ' + response2.length + ' pending document(s).',
             //   badge: response2.length,
             //   priority: 1
             // });
-          } else {
-            documents = null;
-          }
-          // console.log('getToApproveDocuments success', documents);
-        });
       }
-      // Save in localStorage
-      this.sqlite.updateLastDocsDistributedList(documents).then(response2 => this.events.publish('updateLastDocs', documents));
-    })
-    .catch(async (error) => {
+
+      await this.sqlite.updateLastDocsDistributedList(documents);
+      this.events.publish('updateLastDocs', documents);
+    } catch(error) {
       console.log(error);
-      this.events.publish('updateLibrary', null);
-    });
+      this.events.publish('updateLastDocs', null);
+    }
     console.log('~~~~~~~~~~~~~~~~ backgroundUpdateLastDocsDistributed END ~~~~~~~~~~~~~~~~');
+  }
+
+  async backgroundUpdateAll() {
+    console.log('~~~~~~~~~~~~~~~~ backgroundUpdateAll BEGAN ~~~~~~~~~~~~~~~~');
+    await Promise.all([
+      this.getPermissionsOffline(),
+      this.updateFolders(),
+      this.backgroundUpdateMyDocuments(),
+      this.backgroundUpdateFavorites(),
+      this.backgroundUpdateLibrary(),
+      this.backgroundUpdateLastDocsDistributed()
+    ]);
+    console.log('~~~~~~~~~~~~~~~~ backgroundUpdateAll ENDED ~~~~~~~~~~~~~~~~');
   }
 
   async getPermissionsOffline() {
@@ -868,83 +859,6 @@ export class UtilsService {
       });
       await alert.present();
     });
-  }
-
-  getNextDownload() {
-    const connection = localStorage.getItem('onwi.networkStatus');
-    // console.log('buscarProximoDownload conexão', conexao);
-    if (connection === 'offline') {
-      setTimeout(() => {
-        this.getNextDownload();
-      }, 60000); // Roda de novo 1 minuto depois
-    } else {
-      // Função para buscar no banco de dados próximo arquivo a ser baixado e atualizar tabelas com status do download
-      this.sqlite.getNextDownload().then((document: any) => {
-        console.log('getNextDownload - Next file to be downloaded: ', JSON.stringify(document));
-        if (document.status) {
-          // Baixa documento
-          if (connection === 'wifi') {
-            this.downloadLocalFile(document.document).then((response: any) => {
-              console.log('getNextDownload - downloadLocalFile ', response, document);
-              if (response.status) {
-                // Atualiza banco de dados
-                // this.sqlite.atualizarDownloadStatus(document.tabela, document.document.id, 'Downloaded').then((response2: any) => {
-                //   console.log('buscarProximoDownload - Tabela atualizada', response2);
-                // });
-                this.sqlite.updateDownloadStatus(document.document.DocumentID, 'Downloaded');
-                console.log('getNextDownload - Success, file downloaded :)', response, document);
-              } else {
-                if (response.message === 'You have no permission to download this file.') {
-                  // Coloco o status como vazio para não travar fila de downloads
-                  this.sqlite.updateDownloadStatus(document.document.DocumentID, '');
-                }
-              }
-              setTimeout(() => {
-                this.getNextDownload();
-              }, 60000); // Roda de novo 1 minuto depois
-            }).catch((error) => {
-              // console.log('buscarProximoDownload error', error);
-              setTimeout(() => {
-                this.getNextDownload();
-              }, 60000); // Roda de novo 1 minuto depois
-            });
-          } else {
-            this.validateDownloadNetwork().then((baixar: any) => {
-              if (baixar) {
-                this.downloadLocalFile(document.document).then((response: any) => {
-                  if (response.status) {
-                    // Update the data base
-                    this.sqlite.updateDownloadStatus(document.document.DocumentID, 'Downloaded');
-                  }
-                }).catch((error) => {
-                  // console.log('buscarProximoDownload error', error);
-                  setTimeout(() => {
-                    this.getNextDownload();
-                  }, 60000); // Roda de novo 1 minuto depois
-                });
-              } else {
-                setTimeout(() => {
-                  this.getNextDownload();
-                }, 60000); // Roda de novo 1 minuto depois
-              }
-            }).catch((error) => {
-              setTimeout(() => {
-                this.getNextDownload();
-              }, 60000); // Roda de novo 1 minuto depois
-            });
-          }
-        } else {
-          setTimeout(() => {
-            this.getNextDownload();
-          }, 60000); // Roda de novo 1 minuto depois
-        }
-      }).catch((error) => {
-        // console.log('buscarProximoDownload error', error);
-        setTimeout(() => {
-          this.getNextDownload();
-        }, 60000); // Roda de novo 1 minuto depois
-      });
-    }
   }
 
   mimeFileConvert(extension: string) {
