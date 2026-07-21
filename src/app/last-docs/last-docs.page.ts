@@ -2,11 +2,11 @@ import { Component, OnInit } from '@angular/core';
 import { MenuController, ModalController, NavController } from '@ionic/angular';
 import { ApiService } from '../services/api/api.service';
 import { Events } from '../services/events/events';
-import { UtilsService } from '../services/utils/utils.service';
 import { ModalApprovalComponent } from '../modal-approval/modal-approval.component';
 // import { Badge } from '@ionic-native/badge/ngx';
 import { SqliteService } from '../services/sqlite/sqlite.service';
 import { BaseDocumentPage } from '../base-document.page';
+import { UtilsService } from '../services/utils/utils.service';
 // import { LocalNotifications } from '@ionic-native/local-notifications/ngx';
 
 @Component({
@@ -16,16 +16,13 @@ import { BaseDocumentPage } from '../base-document.page';
   standalone: false
 })
 export class LastDocsPage extends BaseDocumentPage implements OnInit {
-  public user: any = localStorage.getItem('onwi.User');
-  public subscription: any = localStorage.getItem('onwi.Subscription');
   public tabsFolders = 'Last Docs Distributed';
   public documents: any = null;
   public fullDocuments: any = null;
-  public networkStatus: any = localStorage.getItem('onwi.networkStatus') ? localStorage.getItem('onwi.networkStatus') : 'offline';
   public search = '';
 
   constructor(
-    private utilsService: UtilsService,
+    utilsService: UtilsService,
     private apiService: ApiService,
     private sqlite: SqliteService,
     private events: Events,
@@ -35,7 +32,10 @@ export class LastDocsPage extends BaseDocumentPage implements OnInit {
     // // private badge: Badge,
     // private localNotifications: LocalNotifications
   ) {
-    super();
+    super(utilsService);
+    this.user = localStorage.getItem('onwi.User');
+    this.subscription= localStorage.getItem('onwi.Subscription');
+    this.networkStatus = localStorage.getItem('onwi.networkStatus') ? localStorage.getItem('onwi.networkStatus') : 'offline';
   }
 
   ngOnInit() {
@@ -121,19 +121,14 @@ export class LastDocsPage extends BaseDocumentPage implements OnInit {
     });
   }
 
-  async addFavorite(doc: any, indexDoc: number) {
-    if (this.networkStatus === 'offline') return;
-    await this.utilsService.addFavorite(doc, this.user, this.subscription, () => this.utilsService.backgroundUpdateFavorites());
-  }
-
-  async removeFavorite(doc: any, indexDoc: number) {
-    if (this.networkStatus === 'offline') return;
-    await this.utilsService.removeFavorite(doc, this.subscription, () => this.utilsService.backgroundUpdateFavorites());
-  }
-
   async approveDoc(doc) {
-    // Modal para aprovar documento
-    console.log('approveDoc', doc);
+    const canProceed = await this.canProceedWithNetwork(
+      this.networkStatus,
+      'Do you want to approve the document using mobile data?',
+      'You need an internet connection to approve documents.'
+    );
+    if (!canProceed) return;
+
     const modal = await this.modalCtrl.create({
       component: ModalApprovalComponent,
       componentProps: {

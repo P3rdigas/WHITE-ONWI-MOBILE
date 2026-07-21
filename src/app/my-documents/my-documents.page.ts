@@ -14,26 +14,26 @@ import { SortMode, ViewMode } from 'src/types/types';
   standalone: false
 })
 export class MyDocumentsPage extends BaseDocumentPage implements OnInit {
-  public user: any = localStorage.getItem('onwi.User');
-  public subscription: any = localStorage.getItem('onwi.Subscription');
   public tabsFolders = 'My Documents';
   public documents: any = null;
   public fullDocuments: any = null;
   public folders: any[] = [];
   public filteredFolders: any[] = [];
-  public networkStatus: any = localStorage.getItem('onwi.networkStatus') ? localStorage.getItem('onwi.networkStatus') : 'offline';
   public viewMode: ViewMode = 'folder';
   public sortMode: SortMode = 'alphabetic';
   public search = '';
 
   constructor(
-    private utilsService: UtilsService,
+    utilsService: UtilsService,
     private apiService: ApiService,
     private sqlite: SqliteService,
     private events: Events,
     private route: ActivatedRoute
   ) {
-    super();
+    super(utilsService);
+    this.user = localStorage.getItem('onwi.User');
+    this.subscription= localStorage.getItem('onwi.Subscription');
+    this.networkStatus = localStorage.getItem('onwi.networkStatus') ? localStorage.getItem('onwi.networkStatus') : 'offline';
   }
 
   ngOnInit() {
@@ -171,16 +171,6 @@ export class MyDocumentsPage extends BaseDocumentPage implements OnInit {
 
   async openFile(doc: any) {
     await this.utilsService.openFile(doc, this.user, this.subscription);
-  }
-
-  async addFavorite(doc: any, indexDoc: number) {
-    if (this.networkStatus === 'offline') return;
-    await this.utilsService.addFavorite(doc, this.user, this.subscription);
-  }
-
-  async removeFavorite(doc: any, indexDoc: number) {
-    if (this.networkStatus === 'offline') return;
-    await this.utilsService.removeFavorite(doc, this.subscription);
   }
 
   async ionViewWillEnter() {

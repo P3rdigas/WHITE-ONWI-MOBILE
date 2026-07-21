@@ -70,6 +70,11 @@ export class UtilsService {
     return toast;
   }
 
+  async notifyOffline(message: string = 'You need an internet connection to do this.'): Promise<void> {
+    const toast = await this.createToast(message);
+    await toast.present();
+  }
+
   createAlert(title: string, text: string, optionButtons?: (string | AlertButton)[], subtitle?: string) {
     // console.log('createAlert');
     if (optionButtons === undefined) {
@@ -176,7 +181,7 @@ export class UtilsService {
     const { networkStatus, apiCall, listType, storeCall, postProcess, refreshCall } = options;
 
     if (networkStatus === 'offline') {
-      this.createToast('Connect on wifi or mobile network to update the documents list.');
+      this.notifyOffline('Connect on wifi or mobile network to update the documents list.');
       await refreshCall();
       return;
     }
@@ -767,7 +772,7 @@ export class UtilsService {
           try { await loader.dismiss(); } catch {}
         }
 
-        allowDownload = await this.validateDownloadNetwork();
+        allowDownload = await this.validateMobileDataUsage();
 
         if (loader) {
           loading = await this.createLoading();
@@ -842,13 +847,12 @@ export class UtilsService {
     }
   }
 
-  async validateDownloadNetwork(): Promise<boolean> {
-    // console.log('validateDownloadNetwork');
+  async validateMobileDataUsage(message: string = 'Do you want to download the file using mobile data?'): Promise<boolean> {
     return new Promise<boolean>(async (resolve) => {
       const alert = await this.alertController.create({
         cssClass: 'alertAlphacode',
         header: 'You are not on WiFi connection',
-        message: 'Do you want to download the file using mobile data?',
+        message,
         buttons: [{
           text: 'Cancel',
           handler: () => resolve(false)

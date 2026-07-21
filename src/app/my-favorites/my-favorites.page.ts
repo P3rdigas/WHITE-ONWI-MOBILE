@@ -12,23 +12,23 @@ import { BaseDocumentPage } from '../base-document.page';
   standalone: false
 })
 export class MyFavoritesPage extends BaseDocumentPage implements OnInit {
-  public user: any = localStorage.getItem('onwi.User');
-  public subscription: any = localStorage.getItem('onwi.Subscription');
   public tabsFolders = 'My Favorites';
   public documents: any = null;
   public fullDocuments: any = null;
   public acceptedDocuments: any = [];
   public notAcceptedDocuments: any = [];
-  public networkStatus: any = 'offline';
   public search = '';
 
   constructor(
-    private utilsService: UtilsService,
+    utilsService: UtilsService,
     private apiService: ApiService,
     private sqlite: SqliteService,
     private events: Events,
   ) {
-    super();
+    super(utilsService);
+    this.user = localStorage.getItem('onwi.User');
+    this.subscription= localStorage.getItem('onwi.Subscription');
+    this.networkStatus = localStorage.getItem('onwi.networkStatus') ? localStorage.getItem('onwi.networkStatus') : 'offline';
   }
 
   ngOnInit() {
@@ -107,11 +107,6 @@ export class MyFavoritesPage extends BaseDocumentPage implements OnInit {
 
   async openFile(doc: any) {
     await this.utilsService.openFile(doc, this.user, this.subscription, () => this.getFavorites());
-  }
-
-  async removeFavorite(doc: any, indexDoc: number) {
-    if (this.networkStatus === 'offline') return;
-    await this.utilsService.removeFavorite(doc, this.subscription, () => this.getFavorites());
   }
 
   ionViewWillEnter() {
