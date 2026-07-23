@@ -225,6 +225,12 @@ export class SqliteService {
     return { status: false };
   }
 
+  async deleteLastDocDistributed(documentID: string): Promise<void> {
+    const db = this.getDbOrThrow();
+
+    await db.run('DELETE FROM lastDocsDistributed WHERE DocumentID = ?', [documentID]);
+  }
+
   async updateDownloadStatus(DocumentID: any, status: any): Promise<void> {
     const db = this.getDbOrThrow();
 

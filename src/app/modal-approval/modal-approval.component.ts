@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { ModalController, NavParams } from '@ionic/angular';
 import { ApiService } from '../services/api/api.service';
 import { UtilsService } from '../services/utils/utils.service';
+import { SqliteService } from '../services/sqlite/sqlite.service';
 
 @Component({
   selector: 'app-modal-approval',
@@ -18,7 +19,8 @@ export class ModalApprovalComponent implements OnInit {
     private modalCtrl: ModalController,
     private navParams: NavParams,
     private apiService: ApiService,
-    private utilsService: UtilsService
+    private utilsService: UtilsService,
+    private sqliteService: SqliteService
   ) { }
 
   ngOnInit() {
@@ -29,32 +31,38 @@ export class ModalApprovalComponent implements OnInit {
     this.subscription = JSON.parse(this.subscription);
   }
 
-  //async postApprove(data) {
   async postApprove(data: any) {
-    console.log(data);
+    if (!this.data.isReceived) {
+      const toast = await this.utilsService.createToast('You must accept before submitting.');
+      toast.present();
+      return;
+    }
+
     const loading = await this.utilsService.createLoading();
     loading.present();
 
-    let timeNow = new Date();
     const obj = {
       isReceived: this.data.isReceived,
-      ReceivedDate: timeNow.toJSON(),
       wasUnderstood: this.data.wasUnderstood,
       Comments: this.data.Comments,
     };
-    // console.log('obj', obj);
 
     this.apiService.postToApproveDocuments(this.subscription.OdataUser, this.subscription.OdataPassword, data.DistributionID, obj)
-    .then(async (response) => {
-      this.result = response;
-      // console.log('postToApproveDocuments', this.result);
+    .then(async (response: any) => {
+      console.log('postToApproveDocuments', response);
+
+      // TODO: Deploy the API
+      if (false && response?.isReceived && response?.wasUnderstood) {
+        const prepared = await this.utilsService.prepareDocumentsNew([response], 'myDocuments');
+        if (prepared?.length) {
+          await this.sqliteService.updateMyDocumentsList(prepared);
+        } 
+
+        await this.sqliteService.deleteLastDocDistributed(response.DocumentID);
+      }
+
       loading.dismiss();
       this.exit('Updated');
-      // if (this.result.value.length) {
-      // } else {
-      //   const alert = await this.utilsService.createAlert('Something went wrong', 'onwi Mobile is desactivated please contact your company\'s IT Department');
-      //   alert.present();
-      // }
     })
     .catch(async (error) => {
       loading.dismiss();

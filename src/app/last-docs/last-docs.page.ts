@@ -124,8 +124,8 @@ export class LastDocsPage extends BaseDocumentPage implements OnInit {
   async approveDoc(doc) {
     const canProceed = await this.canProceedWithNetwork(
       this.networkStatus,
-      'Do you want to approve the document using mobile data?',
-      'You need an internet connection to approve documents.'
+      'You need an internet connection to approve documents.',
+      'Do you want to approve the document using mobile data?'
     );
     if (!canProceed) return;
 
@@ -139,9 +139,7 @@ export class LastDocsPage extends BaseDocumentPage implements OnInit {
 
     modal.onDidDismiss().then((dataReturned) => {
       if (dataReturned.data === 'Updated') {
-        this.refresh(true);
-        // this.utilsService.backgroundUpdateMyDocuments();
-        // this.utilsService.backgroundUpdateLibrary();
+        this.refresh(false);
       }
     });
   }

@@ -15,13 +15,17 @@ export class ApiService {
     // private http: HTTP
   ) {}
 
-  private getBasicOptions(username: string, userPassword: any, acceptJson: boolean = true) {
+  private getBasicOptions(username: string, userPassword: any, acceptJson: boolean = true, returnRepresentation: boolean = false) {
     const headers: any = {
       Authorization: 'Basic ' + btoa(username + ':' + userPassword)
     };
 
     if (acceptJson) {
       headers.Accept = 'application/json';
+    }
+
+    if (returnRepresentation) {
+      headers.Prefer = 'return=representation'
     }
 
     return {
@@ -164,9 +168,9 @@ export class ApiService {
     const subscription = this.getSubscription();
 
     const url = `${subscription.OdataEndPoint}DocumentDistribution(${distributionID})`;
-    console.log('postToApproveDocuments url', url);
+    console.log('postToApproveDocuments url', url, JSON.stringify(data, null, 2));
 
-    return firstValueFrom(this._http.patch(url, data, this.getBasicOptions(username, userPassword, false)));
+    return firstValueFrom(this._http.patch(url, data, this.getBasicOptions(username, userPassword, true, true)));
   }
 
   async getPermissionsDocuments(username: string, userPassword: any, userID: any): Promise<any> {
