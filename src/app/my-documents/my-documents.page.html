@@ -1,11 +1,10 @@
 <ion-header mode="ios">
-  <!-- TO-DO - Background (se tiver) no campo subscription.BackgroundImage -->
   <ion-toolbar mode="ios">
     <ion-grid>
       <ion-row>
         <ion-col size="5">
           <div id="logo">
-            <ion-img [src]="subscription.CustomerImage"></ion-img>
+            <ion-img src="assets/images/logo.png"></ion-img>
           </div>
         </ion-col>
         <ion-col size="5">
@@ -22,7 +21,6 @@
           </ion-avatar>
         </ion-col>
         <ion-col size="12">
-          <ion-img *ngIf="subscription.Image" [src]="subscription.Image"></ion-img>
           <ion-img src="assets/images/divisor.svg"></ion-img>
         </ion-col>
       </ion-row>
@@ -164,7 +162,6 @@
 <ion-footer color="medium" mode="md" id="footer-database">
   <ion-toolbar>
     <ion-title>
-      {{ subscription.DatabaseName }}
       <span *ngIf="networkStatus === 'offline'">Offline</span>
     </ion-title>
   </ion-toolbar>

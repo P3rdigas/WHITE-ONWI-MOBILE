@@ -7,7 +7,6 @@ export abstract class BaseDocumentPage {
     public showScroll= false;
     protected networkStatus: any;
     protected user: any;
-    protected subscription: any;
     
     @ViewChild(IonContent, { static: false }) content: IonContent;
 
@@ -30,7 +29,7 @@ export abstract class BaseDocumentPage {
         );
         if (!canProceed) return;
 
-        await this.utilsService.addFavorite(doc, this.user, this.subscription, () => this.utilsService.backgroundUpdateFavorites());
+        await this.utilsService.addFavorite(doc, this.user, () => this.utilsService.backgroundUpdateFavorites());
     }
 
     async removeFavorite(doc: any, indexDoc: number) {
@@ -41,7 +40,7 @@ export abstract class BaseDocumentPage {
         );
         if (!canProceed) return;
 
-        await this.utilsService.removeFavorite(doc, this.subscription, () => this.utilsService.backgroundUpdateFavorites());
+        await this.utilsService.removeFavorite(doc, () => this.utilsService.backgroundUpdateFavorites());
     }
 
     protected async canProceedWithNetwork(networkStatus: string, offlineMessage: string, actionMessage: string): Promise<boolean> {

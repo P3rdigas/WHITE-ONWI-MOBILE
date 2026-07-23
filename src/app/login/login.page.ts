@@ -17,8 +17,6 @@ export class LoginPage implements OnInit {
   loginForm: FormGroup;
   private data: any = { email: '', password: '', remember: false };
   private result: any;
-  private subscriptionID: any = localStorage.getItem('onwi.SubscriptionID');
-  public subscription: any = JSON.parse(localStorage.getItem('onwi.Subscription'));
   private disabledForm: any = false;
   public networkStatus: any = localStorage.getItem('onwi.networkStatus') ? localStorage.getItem('onwi.networkStatus') : 'offline';
   private isLoggedIn: boolean = false;
@@ -64,34 +62,24 @@ export class LoginPage implements OnInit {
   }
 
   ionViewWillEnter() {
-    this.subscriptionID = localStorage.getItem('onwi.SubscriptionID');
-    this.subscription = JSON.parse(localStorage.getItem('onwi.Subscription'));
-
-    if (this.subscriptionID) {
-      if (!environment.production && this.subscriptionID === environment.testSubscriptionID) {
-        this.data.email = environment.testEmail;
-        this.data.password = environment.testPassword;
-        this.data.remember = true;
-      }
-      if (localStorage.getItem('onwi.Login')) {
-        this.data = JSON.parse(localStorage.getItem('onwi.Login'));
-      }
-
-      this.loginForm.patchValue({
-        email: this.data.email,
-        password: this.data.password,
-        remember: this.data.remember
-      });
-    } else {
-      // Se não tiver subscription retorna para login (/login)
-      this.navCtrl.navigateRoot('/login');
+    if (!environment.production) {
+      this.data.email = environment.testEmail;
+      this.data.password = environment.testPassword;
+      this.data.remember = true;
     }
 
-    if (this.subscription.Image !== null) {
-      this.subscription.Image = 'data:image/png;base64,' + this.subscription.Image;
-    } else {
-      this.subscription.Image = 'assets/images/logo.png';
+    if (localStorage.getItem('onwi.Login')) {
+      this.data = JSON.parse(localStorage.getItem('onwi.Login'));
     }
+
+    this.loginForm.patchValue({
+      email: this.data.email,
+      password: this.data.password,
+      remember: this.data.remember
+    });
+
+    const subscription = JSON.parse(localStorage.getItem('onwi.Subscription'));
+    console.log('subscription data: ', JSON.stringify(subscription, null, 2));
   }
 
   async getUser() {
@@ -119,16 +107,10 @@ export class LoginPage implements OnInit {
             return false;
           }
 
-          const subscription = JSON.parse(localStorage.getItem('onwi.Subscription'));
-          if (!subscription) {
-            this.navCtrl.navigateForward('/subscription');
-          }
-
-          this.apiService.validateUser(subscription.OdataUser, subscription.OdataPassword, this.loginForm.value.email, password.retorno)
+          this.apiService.validateUser(this.loginForm.value.email, password.retorno)
           // .then(async (response2) => {
           .then(async (response2): Promise<any> => {
             this.result = response2;
-            console.log("result: ",this.result);
             if (this.result?.value?.length) {
               if (this.result.value[0].isEnabled) {
                 if (localStorage.getItem('onwi.UserID')) {
@@ -146,6 +128,7 @@ export class LoginPage implements OnInit {
                 // Salva no localStorage
                 localStorage.setItem('onwi.UserID', this.result.value[0].ID);
                 localStorage.setItem('onwi.User', JSON.stringify(this.result.value[0]));
+
                 if (this.loginForm.value.remember) {
                   localStorage.setItem('onwi.Login', JSON.stringify(this.loginForm.value));
                 } else {
@@ -157,7 +140,7 @@ export class LoginPage implements OnInit {
                   }
 
                   loading.dismiss();
-                  
+
                   this.utilsService.loginCompleted = true;
                   this.navCtrl.navigateRoot(['/my-documents']);
                 });

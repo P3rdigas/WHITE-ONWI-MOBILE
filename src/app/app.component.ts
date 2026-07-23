@@ -10,6 +10,8 @@ import { Events } from './services/events/events';
 import { SqliteService } from './services/sqlite/sqlite.service';
 // import { AppVersion } from '@ionic-native/app-version/ngx';
 import { Network } from '@capacitor/network';
+import { SecureStorageService } from './services/secure-storage/secure-storage.service';
+import { environment } from 'src/environments/environment';
 
 @Component({
   selector: 'app-root',
@@ -30,6 +32,7 @@ export class AppComponent implements OnInit {
     private alertController: AlertController,
     private utilsService: UtilsService,
     private sqlite: SqliteService,
+    private secureStorageService: SecureStorageService,
     private events: Events,
     private navCtrl: NavController,
     // private appVersion: AppVersion,
@@ -40,6 +43,8 @@ export class AppComponent implements OnInit {
 
   async initializeApp() {
     await this.platform.ready();
+
+    await this.bootstrapOdataCredentials();
 
     // this.statusBar.styleLightContent();
     // this.splashScreen.hide();
@@ -77,14 +82,6 @@ export class AppComponent implements OnInit {
         });
         await alert.present();
       }
-
-      // if (this.networkStatus === 'offline') {
-      //   if (this.router.url === '/library' || this.router.url === '/last-docs') {
-      //     this.navCtrl.navigateRoot(['/my-documents', 'nao']);
-      //   }
-      // } else {
-      //   this.utilsService.getPermissionsOffline();
-      // }
     });
 
     try {
@@ -94,44 +91,6 @@ export class AppComponent implements OnInit {
       navigator['app'].exitApp();
       return;
     }
-
-    const SubscriptionID = localStorage.getItem('onwi.SubscriptionID');
-    if (SubscriptionID) {
-      this.router.navigate(['login']);
-    }
-
-    // // Updates when opening the app
-    // if (localStorage.getItem('onwi.User') && this.networkStatus !== 'offline') {
-    //   // Updates all tables in background when opening the app
-    //   this.utilsService.getPermissionsOffline();
-    //   setTimeout(() => {
-    //     this.utilsService.backgroundUpdateMyDocuments();
-    //   }, 1 * 60 * 1000); // 1 minute after
-    //   setTimeout(() => {
-    //     this.utilsService.backgroundUpdateFavorites();
-    //   }, 3 * 60 * 1000); // 3 minutes after
-    //   setTimeout(() => {
-    //     this.utilsService.backgroundUpdateLastDocsDistributed();
-    //   }, 5 * 60 * 1000); // 5 minutes after
-    // }
-
-    // // Updates periodically (10 MIN)
-    // setInterval(() => {
-    //   // Updates all tables in background periodically
-    //   if (localStorage.getItem('onwi.User') && this.networkStatus !== 'offline') {
-    //     this.utilsService.getPermissionsOffline();
-    //     this.utilsService.backgroundUpdateLibrary();
-    //     setTimeout(() => {
-    //       this.utilsService.backgroundUpdateMyDocuments();
-    //     }, 1 * 60 * 1000); // 1 minute after
-    //     setTimeout(() => {
-    //       this.utilsService.backgroundUpdateFavorites();
-    //     }, 3 * 60 * 1000); // 3 minutes after
-    //     setTimeout(() => {
-    //       this.utilsService.backgroundUpdateLastDocsDistributed();
-    //     }, 5 * 60 * 1000); // 5 minutes after
-    //   }
-    // }, 10 * 60 * 1000); // every 10 minutes
   }
 
   changeNetworkStatus(status: string) {
@@ -139,6 +98,22 @@ export class AppComponent implements OnInit {
   }
 
   ngOnInit() {
+  }
+
+  // TODO: Check the main API TODO, should use tokens
+  private async bootstrapOdataCredentials() {
+    const existing = await this.secureStorageService.getOdataCredentials();
+
+    if (existing?.username && existing?.password) {
+      return;
+    }
+
+    if (environment.OdataUser && environment.OdataPassword) {
+      await this.secureStorageService.setOdataCredentials(
+        environment.OdataUser,
+        environment.OdataPassword
+      );
+    }
   }
 
   private updateNetworkStatus(connected: boolean, connectionType: string): void {

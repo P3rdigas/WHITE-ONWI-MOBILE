@@ -34,17 +34,15 @@ export class LastDocsPage extends BaseDocumentPage implements OnInit {
   ) {
     super(utilsService);
     this.user = localStorage.getItem('onwi.User');
-    this.subscription= localStorage.getItem('onwi.Subscription');
     this.networkStatus = localStorage.getItem('onwi.networkStatus') ? localStorage.getItem('onwi.networkStatus') : 'offline';
   }
 
   ngOnInit() {
     this.menu.enable(false);
 
-    const session = this.utilsService.initUserSession();
-    if (!session) return;
-    this.user = session.user;
-    this.subscription = session.subscription;
+    const user = this.utilsService.initUserSession();
+    if (!user) return;
+    this.user = user;
 
     this.events.subscribe('changeNetworkStatus', (status) => {
       // console.log('events.subscribe changeNetworkStatus', status);
@@ -89,7 +87,7 @@ export class LastDocsPage extends BaseDocumentPage implements OnInit {
   async getDocumentsAPI() {
     await this.utilsService.fetchAndStoreDocuments({
       networkStatus: this.networkStatus,
-      apiCall: () => this.apiService.getToApproveDocuments(this.subscription.OdataUser, this.subscription.OdataPassword, this.user.ID),
+      apiCall: () => this.apiService.getToApproveDocuments(this.user.ID),
       listType: 'lastDocsDistributed',
       storeCall: (docs) => this.sqlite.updateLastDocsDistributedList(docs),
       refreshCall: () => this.getDocuments()
@@ -145,7 +143,7 @@ export class LastDocsPage extends BaseDocumentPage implements OnInit {
   }
 
   async openFile(doc: any) {
-    await this.utilsService.openFile(doc, this.user, this.subscription, () => this.getDocuments());
+    await this.utilsService.openFile(doc, this.user, () => this.getDocuments());
   }
 
   ionViewWillEnter() {

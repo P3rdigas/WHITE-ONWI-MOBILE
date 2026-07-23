@@ -12,8 +12,6 @@ import { SqliteService } from '../services/sqlite/sqlite.service';
 })
 export class ModalApprovalComponent implements OnInit {
   public data: any = { isReceived: false, wasUnderstood: false, Comments: '' };
-  private subscription: any = localStorage.getItem('onwi.Subscription');
-  private result: any;
 
   constructor(
     private modalCtrl: ModalController,
@@ -28,7 +26,6 @@ export class ModalApprovalComponent implements OnInit {
     this.data = this.navParams.data['document'];
     this.data.isReceived = this.data.isReceived == 'true' ? true : false;
     this.data.wasUnderstood = this.data.wasUnderstood == 'true' ? true : false;
-    this.subscription = JSON.parse(this.subscription);
   }
 
   async postApprove(data: any) {
@@ -47,7 +44,7 @@ export class ModalApprovalComponent implements OnInit {
       Comments: this.data.Comments,
     };
 
-    this.apiService.postToApproveDocuments(this.subscription.OdataUser, this.subscription.OdataPassword, data.DistributionID, obj)
+    this.apiService.postToApproveDocuments(data.DistributionID, obj)
     .then(async (response: any) => {
       console.log('postToApproveDocuments', response);
 

@@ -27,15 +27,13 @@ export class MyFavoritesPage extends BaseDocumentPage implements OnInit {
   ) {
     super(utilsService);
     this.user = localStorage.getItem('onwi.User');
-    this.subscription= localStorage.getItem('onwi.Subscription');
     this.networkStatus = localStorage.getItem('onwi.networkStatus') ? localStorage.getItem('onwi.networkStatus') : 'offline';
   }
 
   ngOnInit() {
-    const session = this.utilsService.initUserSession();
-    if (!session) return;
-    this.user = session.user;
-    this.subscription = session.subscription;
+    const user = this.utilsService.initUserSession();
+    if (!user) return;
+    this.user = user;
 
     this.events.subscribe('changeNetworkStatus', (status) => {
       // console.log('events.subscribe changeNetworkStatus', status);
@@ -76,7 +74,7 @@ export class MyFavoritesPage extends BaseDocumentPage implements OnInit {
   async getFavoritesAPI() {
     await this.utilsService.fetchAndStoreDocuments({
       networkStatus: this.networkStatus,
-      apiCall: () => this.apiService.getFavoritesDocuments(this.subscription.OdataUser, this.subscription.OdataPassword, this.user.ID),
+      apiCall: () => this.apiService.getFavoritesDocuments(this.user.ID),
       listType: 'myFavorites',
       storeCall: (docs) => this.sqlite.updateMyFavoritesList(docs),
       refreshCall: () => this.getFavorites()
@@ -106,7 +104,7 @@ export class MyFavoritesPage extends BaseDocumentPage implements OnInit {
   }
 
   async openFile(doc: any) {
-    await this.utilsService.openFile(doc, this.user, this.subscription, () => this.getFavorites());
+    await this.utilsService.openFile(doc, this.user, () => this.getFavorites());
   }
 
   ionViewWillEnter() {

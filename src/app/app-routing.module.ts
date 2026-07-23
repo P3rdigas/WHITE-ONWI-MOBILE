@@ -1,17 +1,11 @@
 import { NgModule } from '@angular/core';
 import { PreloadAllModules, RouterModule, Routes } from '@angular/router';
-import { AuthenticationService } from './services/authentication/authentication.service';
 
 const routes: Routes = [
   {
     path: '',
-    redirectTo: 'subscription',
+    redirectTo: 'login',
     pathMatch: 'full'
-  },
-  {
-    path: 'subscription',
-    loadChildren: () => import('./subscription/subscription.module').then(m => m.SubscriptionPageModule),
-    canActivate: [AuthenticationService]
   },
   {
     path: 'login',

@@ -5,7 +5,7 @@
         <ion-grid>
           <ion-row class="ion-justify-content-center ion-padding-bottom">
             <ion-col size="8">
-              <ion-img [src]="subscription.Image" class="ion-padding-bottom"></ion-img>
+              <ion-img src="assets/images/logo.png" class="ion-padding-bottom"></ion-img>
             </ion-col>
           </ion-row>
           
@@ -64,9 +64,6 @@
     <ion-segment-button layout="icon-end" (click)="exit()">
       <ion-icon size="small" src="assets/images/exit.svg"></ion-icon>
       <ion-label>Exit</ion-label>
-    </ion-segment-button>
-    <ion-segment-button [routerLink]="['/subscription']" routerDirection="root">
-      <ion-label>Subscription</ion-label>
     </ion-segment-button>
   </ion-segment>
 </ion-footer>

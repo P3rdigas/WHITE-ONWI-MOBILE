@@ -35,7 +35,7 @@ export class UtilsService {
     // private localNotifications: LocalNotifications
   ) { }
 
-  initUserSession(): { user: any, subscription: any } {
+  initUserSession(): any {
     const userRaw = localStorage.getItem('onwi.User');
 
     if (!userRaw) {
@@ -45,11 +45,9 @@ export class UtilsService {
     }
 
     const user = JSON.parse(userRaw);
-    const subscription = JSON.parse(localStorage.getItem('onwi.Subscription'));
     user.Photo = user.Photo ? 'data:image/png;base64,' + user.Photo : 'assets/images/logo.png';
-    subscription.CustomerImage = subscription.CustomerImage ? 'data:image/png;base64,' + subscription.CustomerImage : 'assets/images/logo.png';
 
-    return { user, subscription };
+    return user;
   }
 
   async createLoading(title?: string, seconds?: number): Promise<HTMLIonLoadingElement> {
@@ -111,15 +109,8 @@ export class UtilsService {
 
   async updateFolders() {
     console.log('utils updateFolders()');
-    
-    const subscriptionRaw = localStorage.getItem('onwi.Subscription');
-    if (!subscriptionRaw) {
-      return this.publishFolders();
-    }
 
-    const subscription = JSON.parse(subscriptionRaw);
-
-    await this.apiService.getDocumentsFolders(subscription.OdataUser, subscription.OdataPassword)
+    await this.apiService.getDocumentsFolders()
     .then(async (response: any) => {
       const folders = response?.value ?? [];
 
@@ -342,7 +333,7 @@ export class UtilsService {
     return (doc.DocumentTag?.trim() ? doc.DocumentTag : doc.DocumentDesignation) || '';
   }
 
-  async addFavorite(doc: any, user: any, subscription: any, onComplete?: () => void): Promise<void> {
+  async addFavorite(doc: any, user: any, onComplete?: () => void): Promise<void> {
     const loading = await this.createLoading();
     loading.present();
 
@@ -358,7 +349,7 @@ export class UtilsService {
       Comments: 'Added from APP'
     };
 
-    this.apiService.postFavoriteDocument(subscription.OdataUser, subscription.OdataPassword, obj)
+    this.apiService.postFavoriteDocument(obj)
     .then(async (response) => {
       console.log('postFavoriteDocument', response);
       this.applyFavorite(doc, true, id, onComplete);
@@ -370,11 +361,11 @@ export class UtilsService {
     });
   }
 
-  async removeFavorite(doc: any, subscription: any, onComplete?: () => void): Promise<void> {
+  async removeFavorite(doc: any, onComplete?: () => void): Promise<void> {
     const loading = await this.createLoading();
     loading.present();
 
-    this.apiService.deleteFavoriteDocument(subscription.OdataUser, subscription.OdataPassword, doc.DocumentFavoriteID)
+    this.apiService.deleteFavoriteDocument(doc.DocumentFavoriteID)
     .then(async (response) => {
       console.log('deleteFavoriteDocument', response);
       this.applyFavorite(doc, true, null, onComplete);
@@ -388,11 +379,10 @@ export class UtilsService {
 
   async backgroundUpdateLibrary() {
     console.log('~~~~~~~~~~~~~~~~ backgroundUpdateLibrary BEGAN ~~~~~~~~~~~~~~~~');
-    const subscriptionRaw = localStorage.getItem('onwi.Subscription');
     const userRaw = localStorage.getItem('onwi.User');
 
-    if (!subscriptionRaw || !userRaw) {
-      console.warn('backgroundUpdateLibrary aborted: missing subscription or user', subscriptionRaw);
+    if (!userRaw) {
+      console.warn('backgroundUpdateLibrary aborted: missing user');
       return;
     }
 
@@ -402,10 +392,8 @@ export class UtilsService {
       return;
     }
 
-    const subscription = JSON.parse(subscriptionRaw);
-
     try {
-      const response = await this.apiService.getDocuments(subscription.OdataUser, subscription.OdataPassword);
+      const response = await this.apiService.getDocuments();
       const values = response?.value ?? [];
       let documents = [];
 
@@ -425,19 +413,17 @@ export class UtilsService {
 
   async backgroundUpdateMyDocuments() {
     console.log('~~~~~~~~~~~~~~~~ backgroundUpdateMyDocuments BEGAN ~~~~~~~~~~~~~~~~');
-    const subscriptionRaw = localStorage.getItem('onwi.Subscription');
     const userRaw = localStorage.getItem('onwi.User');
 
-    if (!subscriptionRaw || !userRaw) {
-      console.warn('backgroundUpdateMyDocuments aborted: missing subscription or user', subscriptionRaw, userRaw);
+    if (!userRaw) {
+      console.warn('backgroundUpdateMyDocuments aborted: missing user', userRaw);
       return;
     }
 
-    const subscription = JSON.parse(subscriptionRaw);
     const user = JSON.parse(userRaw);
 
     try {
-      const response = await this.apiService.getDistributedDocuments(subscription.OdataUser, subscription.OdataPassword, user.ID);
+      const response = await this.apiService.getDistributedDocuments(user.ID);
       const values = response?.value ?? [];
       let documents = [];
 
@@ -457,19 +443,17 @@ export class UtilsService {
 
   async backgroundUpdateFavorites() {
     console.log('~~~~~~~~~~~~~~~~ backgroundUpdateFavorites BEGAN ~~~~~~~~~~~~~~~~');
-    const subscriptionRaw = localStorage.getItem('onwi.Subscription');
     const userRaw = localStorage.getItem('onwi.User');
 
-    if (!subscriptionRaw || !userRaw) {
-      console.warn('backgroundUpdateFavorites aborted: missing subscription or user', subscriptionRaw, userRaw);
+    if (!userRaw) {
+      console.warn('backgroundUpdateFavorites aborted: missing user', userRaw);
       return;
     }
 
-    const subscription = JSON.parse(subscriptionRaw);
     const user = JSON.parse(userRaw);
 
     try {
-      const response = await this.apiService.getFavoritesDocuments(subscription.OdataUser, subscription.OdataPassword, user.ID);
+      const response = await this.apiService.getFavoritesDocuments(user.ID);
       let documents = [];
 
       if (response?.length) {
@@ -488,19 +472,17 @@ export class UtilsService {
 
   async backgroundUpdateLastDocsDistributed() {
     console.log('~~~~~~~~~~~~~~~~ backgroundUpdateLastDocsDistributed BEGAN ~~~~~~~~~~~~~~~~');
-    const subscriptionRaw = localStorage.getItem('onwi.Subscription');
     const userRaw = localStorage.getItem('onwi.User');
 
-    if (!subscriptionRaw || !userRaw) {
-      console.warn('backgroundUpdateLastDocsDistributed aborted: missing subscription or user', subscriptionRaw, userRaw);
+    if (!userRaw) {
+      console.warn('backgroundUpdateLastDocsDistributed aborted: missing user', userRaw);
       return;
     }
 
-    const subscription = JSON.parse(subscriptionRaw);
     const user = JSON.parse(userRaw);
 
     try {
-      const response = await this.apiService.getToApproveDocuments(subscription.OdataUser, subscription.OdataPassword, user.ID);
+      const response = await this.apiService.getToApproveDocuments(user.ID);
       const values = response?.value ?? [];
       let documents = [];
 
@@ -542,18 +524,16 @@ export class UtilsService {
   async getPermissionsOffline() {
     console.log('~~~~~~~~~~~~~~~~ getPermissionsOffline BEGAN ~~~~~~~~~~~~~~~~');
     const userRaw = localStorage.getItem('onwi.User');
-    const subscriptionRaw = localStorage.getItem('onwi.Subscription');
 
-    if (!userRaw || !subscriptionRaw) {
-      console.log('getPermissionsOffline - missing user or subscription');
+    if (!userRaw) {
+      console.log('getPermissionsOffline - missing user');
       return;
     }
 
     const user = JSON.parse(userRaw);
-    const subscription = JSON.parse(subscriptionRaw);
 
     try {
-      const response = await this.apiService.getPermissionsDocuments(subscription.OdataUser, subscription.OdataPassword, user.ID);
+      const response = await this.apiService.getPermissionsDocuments(user.ID);
 
       console.log('getPermissionsOffline - response', JSON.stringify(response));
 
@@ -566,7 +546,7 @@ export class UtilsService {
     console.log('~~~~~~~~~~~~~~~~ getPermissionsOffline ENDED ~~~~~~~~~~~~~~~~');
   }
 
-  async getPermissionDocument(OdataUser: string, OdataPassword: string, userID: string, DocumentID: string) {
+  async getPermissionDocument(userID: string, DocumentID: string) {
     try {
       // Check SQLite first
       const cached = await this.sqlite.getPermission(DocumentID);
@@ -577,7 +557,7 @@ export class UtilsService {
       }
 
       // Use the API
-      const response = await this.apiService.getPermissionDocument(OdataUser, OdataPassword, userID, DocumentID);
+      const response = await this.apiService.getPermissionDocument(userID, DocumentID);
       console.log('getPermission API result:', JSON.stringify(response, null, 2));
 
       if (!response?.value.length) {
@@ -591,7 +571,7 @@ export class UtilsService {
     }
   }
 
-  async openFile(doc: any, user: any, subscription: any, onDownloadSuccess?: () => void): Promise<void> {
+  async openFile(doc: any, user: any, onDownloadSuccess?: () => void): Promise<void> {
     let loading = await this.createLoading();
     await loading.present();
 
@@ -600,10 +580,7 @@ export class UtilsService {
     console.log("END PRINTING THE DOCUMENT")
 
     // Check permissions
-    const permissionResult = await this.getPermissionDocument(
-      subscription.OdataUser, subscription.OdataPassword, 
-      user.ID, doc.DocumentID
-    );
+    const permissionResult = await this.getPermissionDocument(user.ID, doc.DocumentID);
 
     console.log('PERMISSION RESULT:', JSON.stringify(permissionResult, null, 2));
 
@@ -669,7 +646,7 @@ export class UtilsService {
         if (error?.message === 'File does not exist') {
           doc.DownloadStatus = 'Waiting';
           await this.sqlite.updateDownloadStatus(doc.DocumentID, 'Waiting');
-          return this.openFile(doc, user, subscription, onDownloadSuccess); // retry to open the file (download and open)
+          return this.openFile(doc, user, onDownloadSuccess); // retry to open the file (download and open)
         }
 
         const alert = await this.createAlert('Something went wrong', 'Could not open PDF file');
@@ -688,7 +665,7 @@ export class UtilsService {
         if (error?.message === 'File does not exist') {
           doc.DownloadStatus = 'Waiting';
           await this.sqlite.updateDownloadStatus(doc.DocumentID, 'Waiting');
-          return this.openFile(doc, user, subscription, onDownloadSuccess); // retry to open the file (download and open)
+          return this.openFile(doc, user, onDownloadSuccess); // retry to open the file (download and open)
         }
 
         const message = error?.status === 9 ? `No app found to read ${doc.DocumentVersionExtension} file` : 'Error on open file';
@@ -726,11 +703,6 @@ export class UtilsService {
     let loading = loader ?? null;
 
     try {
-      const subscriptionRaw = localStorage.getItem('onwi.Subscription');
-      if (!subscriptionRaw) {
-        return { status: false, message: 'Invalid Subscription.', loader: loading };
-      }
-
       const userRaw = localStorage.getItem('onwi.User');
       if (!userRaw) {
         return { status: false, message: 'Invalid user.', loader: loading };
@@ -741,16 +713,10 @@ export class UtilsService {
         return { status: false, message: 'Connect on wifi or mobile network to download this file.', loader: loading };
       }
 
-      const subscription = JSON.parse(subscriptionRaw);
       const user = JSON.parse(userRaw);
 
       // Check permissions
-      const permissionResult = await this.getPermissionDocument(
-        subscription.OdataUser,
-        subscription.OdataPassword,
-        user.ID,
-        doc.DocumentID
-      );
+      const permissionResult = await this.getPermissionDocument(user.ID, doc.DocumentID);
 
       if (!permissionResult) {
         return { status: false, message: 'Permission not found. Wait a moment and try again.', loader: loading };
@@ -792,11 +758,7 @@ export class UtilsService {
 
       // Strategy 1: getFile() returns base64 binary
       try {
-        const response: any = await this.apiService.getFile(
-          subscription.OdataUser,
-          subscription.OdataPassword,
-          doc.DocumentVersionFileID
-        );
+        const response: any = await this.apiService.getFile(doc.DocumentVersionFileID);
 
         const binary = response?.Binary ?? (response?.data ? JSON.parse(response.data)?.Binary : null);
 
@@ -824,14 +786,7 @@ export class UtilsService {
 
       // Strategy 2: downloadFile() (direct file download)
       try {
-        await this.apiService.downloadFile(
-          subscription.OdataUser,
-          subscription.OdataPassword,
-          user.ID,
-          doc.DocumentID,
-          doc.DocumentVersionID,
-          uri
-        );
+        await this.apiService.downloadFile(user.ID, doc.DocumentID, doc.DocumentVersionID, uri);
 
         await this.sqlite.updateDownloadStatus(doc.DocumentID, 'Downloaded');
 
@@ -895,6 +850,7 @@ export class UtilsService {
     }
   }
 
+  // TODO:
   limpaDownloads() {
     // TO-DO - REFAZER PARA BANCO DE DADOS
     const downloads: any = JSON.parse(localStorage.getItem('onwi.Downloads'));
@@ -950,11 +906,12 @@ export class UtilsService {
     }
   }
 
+  // TODO:
   cleanStorage(source: string) {
     // localStorage.removeItem('onwi.SoftwareID');
     if (source === 'externo') {
-      localStorage.removeItem('onwi.SubscriptionID');
-      localStorage.removeItem('onwi.Subscription');
+      // localStorage.removeItem('onwi.SubscriptionID');
+      // localStorage.removeItem('onwi.Subscription');
     }
     localStorage.removeItem('onwi.Login');
     localStorage.removeItem('onwi.UserID');
@@ -971,6 +928,7 @@ export class UtilsService {
     this.limpaDownloads();
   }
 
+  // TODO:
   async exitApp(source: string, ask?: boolean) {
     // console.log('exitApp');
     if (ask) {
@@ -991,7 +949,7 @@ export class UtilsService {
             if (source === 'interno') {
               this.navCtrl.navigateRoot('/login');
             } else {
-              this.navCtrl.navigateRoot('/subscription');
+              // this.navCtrl.navigateRoot('/subscription');
             }
           }
         }]
@@ -1005,7 +963,7 @@ export class UtilsService {
       if (source === 'interno') {
         this.navCtrl.navigateRoot('/login');
       } else {
-        this.navCtrl.navigateRoot('/subscription');
+        // this.navCtrl.navigateRoot('/subscription');
       }
     }
   }

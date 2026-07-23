@@ -29,15 +29,13 @@ export class LibraryPage extends BaseDocumentPage implements OnInit {
   ) {
     super(utilsService);
     this.user = localStorage.getItem('onwi.User');
-    this.subscription= localStorage.getItem('onwi.Subscription');
     this.networkStatus = localStorage.getItem('onwi.networkStatus') ? localStorage.getItem('onwi.networkStatus') : 'offline';
   }
 
   ngOnInit() {
-    const session = this.utilsService.initUserSession();
-    if (!session) return;
-    this.user = session.user;
-    this.subscription = session.subscription;
+    const user = this.utilsService.initUserSession();
+    if (!user) return;
+    this.user = user;
 
     // Filter folders
     this.events.subscribe('updateFolders', (folders) => {
@@ -114,7 +112,7 @@ export class LibraryPage extends BaseDocumentPage implements OnInit {
   async getDocumentsAPI(): Promise<void> {
     await this.utilsService.fetchAndStoreDocuments({
       networkStatus: this.networkStatus,
-      apiCall: () => this.apiService.getDocuments(this.subscription.OdataUser, this.subscription.OdataPassword),
+      apiCall: () => this.apiService.getDocuments(),
       listType: 'library',
       storeCall: (docs) => this.sqlite.updateLibraryList(docs),
       postProcess: (docs) => this.utilsService.filterDocumentLastVersion(docs),
@@ -140,16 +138,11 @@ export class LibraryPage extends BaseDocumentPage implements OnInit {
   }
 
   async openFile(doc: any) {
-    await this.utilsService.openFile(doc, this.user, this.subscription);
+    await this.utilsService.openFile(doc, this.user);
   }
 
   ionViewWillEnter() {
     this.refresh(false);
-
-    // // Se não for viewer ou estiver offline redireciono para próxima aba
-    // if (!this.user.isViewer || this.networkStatus === 'offline') {
-    //   this.navCtrl.navigateRoot(['/my-documents']);
-    // }
 
     if (!this.user.isViewer) {
       this.navCtrl.navigateRoot(['/my-documents']);
