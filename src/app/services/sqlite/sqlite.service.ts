@@ -291,12 +291,12 @@ export class SqliteService {
             DocumentFolderID,
             DocumentURLUser,
             DocumentURLPassword,
-            isReceived INTEGER DEFAULT 0,
-            wasUnderstood INTEGER DEFAULT 0
+            isReceived,
+            wasUnderstood
           ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [
             doc.DocumentID,
-            doc.DocumentFavorite,
+            doc.DocumentFavorite ? 1 : 0,
             doc.DocumentFavoriteID,
             doc.DocumentType,
             doc.DownloadStatus,

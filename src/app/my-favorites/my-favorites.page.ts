@@ -83,9 +83,6 @@ export class MyFavoritesPage extends BaseDocumentPage implements OnInit {
 
   // TODO: Accepting files must triggers an update of the favorites list probably
   async getFavorites() {
-    // const loading = await this.utilsService.createLoading();
-    // loading.present();
-
     this.sqlite.getMyFavorites().then((documents: any) => {
       this.fullDocuments = this.documents = null;
       this.acceptedDocuments = [];
@@ -95,11 +92,9 @@ export class MyFavoritesPage extends BaseDocumentPage implements OnInit {
         this.fullDocuments = [...documents];
         this.applySort();
       }
-      // loading.dismiss();
     })
     .catch((error) => {
       console.log('getFavorites - sqlite.getMyFavorites catch', error);
-      // loading.dismiss();
     });
   }
 

@@ -337,6 +337,7 @@ export class UtilsService {
     const loading = await this.createLoading();
     loading.present();
 
+    // TODO: Date should be set in the API
     const id = Guid.create().toString();
     const timeNow = new Date();
     const obj = {
@@ -352,12 +353,12 @@ export class UtilsService {
     this.apiService.postFavoriteDocument(obj)
     .then(async (response) => {
       console.log('postFavoriteDocument', response);
-      this.applyFavorite(doc, true, id, onComplete);
+      await this.applyFavorite(doc, true, id, onComplete);
       loading.dismiss();
     })
-    .catch(() => {
+    .catch(async () => {
+      await this.applyFavorite(doc, true, id, onComplete);
       loading.dismiss();
-      this.applyFavorite(doc, true, id, onComplete);
     });
   }
 
@@ -368,12 +369,12 @@ export class UtilsService {
     this.apiService.deleteFavoriteDocument(doc.DocumentFavoriteID)
     .then(async (response) => {
       console.log('deleteFavoriteDocument', response);
-      this.applyFavorite(doc, true, null, onComplete);
+      await this.applyFavorite(doc, false, null, onComplete);
       loading.dismiss();
     })
-    .catch(() => {
+    .catch(async () => {
+      await this.applyFavorite(doc, false, null, onComplete);
       loading.dismiss();
-      this.applyFavorite(doc, true, null, onComplete);
     });
   }
 
@@ -973,10 +974,11 @@ export class UtilsService {
     this.events.publish('updateFolders', menuFolders);
   }
 
-  private applyFavorite(doc: any, status: boolean, id: string, onComplete?: () => void) {
+  private async applyFavorite(doc: any, status: boolean, id: string, onComplete?: () => void) {
+    console.log(JSON.stringify(doc, null, 2))
     doc.DocumentFavorite = status;
     doc.DocumentFavoriteID = id;
-    this.sqlite.updateFavoriteDocs(doc.DocumentVerionID, doc.DocumentFavoriteID, doc.DocumentFavorite, doc);
+    await this.sqlite.updateFavoriteDocs(doc.DocumentVersionFileID, doc.DocumentFavoriteID, doc.DocumentFavorite, doc);
     onComplete?.();
   }
 }
