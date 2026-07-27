@@ -10,7 +10,7 @@ import { Filesystem, Directory } from '@capacitor/filesystem';
 import { Guid } from 'guid-typescript';
 import { SqliteService } from '../sqlite/sqlite.service';
 import { FileOpener } from '@capacitor-community/file-opener';
-// import { LocalNotifications } from '@ionic-native/local-notifications/ngx';
+import { LocalNotifications } from '@capacitor/local-notifications';
 
 @Injectable({
   providedIn: 'root'
@@ -32,7 +32,6 @@ export class UtilsService {
     // private file: File,
     // private iab: InAppBrowser,
     // private badge: Badge,
-    // private localNotifications: LocalNotifications
   ) { }
 
   initUserSession(): any {
@@ -220,6 +219,7 @@ export class UtilsService {
       doc.DocumentFavorite = false;
       doc.DownloadStatus = '';
 
+      // TODO:
       // Check if the document is in myFavorites
       await this.sqlite.getMyFavorites(undefined, doc.DocumentVersionFileID).then(async (favorites: any) => {
         if (favorites && favorites.length) {
@@ -348,7 +348,7 @@ export class UtilsService {
 
     try {
       const response = await this.apiService.postFavoriteDocument(obj);
-      console.log('postFavoriteDocument', response);
+      console.log('postFavoriteDocument', JSON.stringify(response, null, 2));
       await this.applyFavorite(doc, true, id);
     } catch (error) {
       console.log('postFavoriteDocument error', error);
@@ -487,13 +487,30 @@ export class UtilsService {
         // this.localNotifications.clear(9999);
         const prepared = await this.prepareDocumentsNew(values, 'lastDocsDistributed');
         documents = prepared?.length ? prepared : [];
-        // this.localNotifications.schedule({
-            //   id: 9999,
-            //   title: 'Documents to approve',
-            //   text: 'Check the Last Docs Distribuited to approve your documents. You have ' + response2.length + ' pending document(s).',
-            //   badge: response2.length,
-            //   priority: 1
-            // });
+
+        if (!documents.length) {
+          return;
+        }
+
+        const permStatus = await LocalNotifications.checkPermissions();
+
+        if (permStatus.display !== 'granted') {
+          const request = await LocalNotifications.requestPermissions();
+          if (request.display !== 'granted') {
+            return;
+          }
+        }
+
+        await LocalNotifications.schedule({
+          notifications: [
+            {
+              id: 9999,
+              title: 'Documents to approve',
+              body: `You have ${documents.length} pending document${documents.length > 1 ? 's' : ''} to approve.`,
+              schedule: { at: new Date(Date.now() + 1000) }
+            }
+          ]
+        });
       }
 
       await this.sqlite.updateLastDocsDistributedList(documents);
