@@ -44,7 +44,7 @@ export class MyDocumentsPage extends BaseDocumentPage implements OnInit {
       // console.log('events.subscribe changeNetworkStatus', status);
       this.networkStatus = status;
     });
-    this.events.subscribe('updateFolders', (folders) => {
+    this.events.subscribe('updateFolders', () => {
       // console.log('events.subscribe updateFolders MyDocuments', folders);
       this.loadFolders();
     });

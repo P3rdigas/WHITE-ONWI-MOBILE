@@ -38,7 +38,7 @@ export class LibraryPage extends BaseDocumentPage implements OnInit {
     this.user = user;
 
     // Filter folders
-    this.events.subscribe('updateFolders', (folders) => {
+    this.events.subscribe('updateFolders', () => {
       this.loadFolders();
     })
     this.events.subscribe('changeNetworkStatus', (status) => {

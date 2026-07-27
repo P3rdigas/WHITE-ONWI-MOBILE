@@ -118,11 +118,10 @@ export class UtilsService {
         const alert = await this.createAlert('Something went wrong', 'No folders found. Please contact your company\'s IT Department.');
         await alert.present();
       }
-
-      await this.publishFolders();
     } catch (error) {
       console.log('updateFolders error', error);
-      await this.publishFolders();
+    } finally {
+      this.events.publish('updateFolders', null);
     }
   }
 
@@ -964,11 +963,6 @@ export class UtilsService {
         // this.navCtrl.navigateRoot('/subscription');
       }
     }
-  }
-
-  private async publishFolders(): Promise<void> {
-    const menuFolders = await this.prepareMenuFolders(null);
-    this.events.publish('updateFolders', menuFolders);
   }
 
   private async applyFavorite(doc: any, status: boolean, id: string) {
