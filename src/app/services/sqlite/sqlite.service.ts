@@ -264,8 +264,6 @@ export class SqliteService {
     }
 
     if (status && doc) {
-      // TODO: If is a newer version or revision of the document, the older one should be deleted and this one inserted (or maybe just update)
-      // Insert into my favorites only if not already there
       const existing = await db.query('SELECT id FROM myFavorites WHERE DocumentVersionFileID = ?', [DocumentVersionFileID]);
 
       if (!existing.values.length) {

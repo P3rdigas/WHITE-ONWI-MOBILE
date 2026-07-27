@@ -108,25 +108,22 @@ export class UtilsService {
   }
 
   async updateFolders() {
-    console.log('utils updateFolders()');
-
-    await this.apiService.getDocumentsFolders()
-    .then(async (response: any) => {
+    try {
+      const response: any = await this.apiService.getDocumentsFolders();
       const folders = response?.value ?? [];
 
       await this.sqlite.updateFoldersList(folders);
 
       if (!folders.length) {
         const alert = await this.createAlert('Something went wrong', 'No folders found. Please contact your company\'s IT Department.');
-        alert.present();
+        await alert.present();
       }
 
-      return this.publishFolders();
-    })
-    .catch(async (error) => {
+      await this.publishFolders();
+    } catch (error) {
       console.log('updateFolders error', error);
-      return this.publishFolders();
-    });
+      await this.publishFolders();
+    }
   }
 
   async prepareMenuFolders(idParent: string | null): Promise<any[]> {
@@ -166,7 +163,7 @@ export class UtilsService {
     apiCall: () => Promise<any>;
     listType: string;
     storeCall: (docs: any[] | null) => Promise<void>;
-    postProcess?: (docs: any[]) => any[];
+    postProcess?: (docs: any[]) => any[] | Promise<any[]>;
     refreshCall: () => Promise<void> | null;
   }): Promise<void> {
     const { networkStatus, apiCall, listType, storeCall, postProcess, refreshCall } = options;
@@ -193,7 +190,7 @@ export class UtilsService {
         let prepared = await this.prepareDocumentsNew(docs, listType);
 
         if (postProcess && prepared?.length) {
-          prepared = postProcess(prepared);
+          prepared = await postProcess(prepared);
         }
 
         await storeCall(prepared?.length ? prepared : null);
@@ -333,9 +330,9 @@ export class UtilsService {
     return (doc.DocumentTag?.trim() ? doc.DocumentTag : doc.DocumentDesignation) || '';
   }
 
-  async addFavorite(doc: any, user: any, onComplete?: () => void): Promise<void> {
+  async addFavorite(doc: any, user: any): Promise<void> {
     const loading = await this.createLoading();
-    loading.present();
+    await loading.present();
 
     // TODO: Date should be set in the API
     const id = Guid.create().toString();
@@ -350,32 +347,32 @@ export class UtilsService {
       Comments: 'Added from APP'
     };
 
-    this.apiService.postFavoriteDocument(obj)
-    .then(async (response) => {
+    try {
+      const response = await this.apiService.postFavoriteDocument(obj);
       console.log('postFavoriteDocument', response);
-      await this.applyFavorite(doc, true, id, onComplete);
-      loading.dismiss();
-    })
-    .catch(async () => {
-      await this.applyFavorite(doc, true, id, onComplete);
-      loading.dismiss();
-    });
+      await this.applyFavorite(doc, true, id);
+    } catch (error) {
+      console.log('postFavoriteDocument error', error);
+      await this.applyFavorite(doc, true, id);
+    } finally {
+      await loading.dismiss();
+    }
   }
 
-  async removeFavorite(doc: any, onComplete?: () => void): Promise<void> {
+  async removeFavorite(doc: any): Promise<void> {
     const loading = await this.createLoading();
-    loading.present();
+    await loading.present();
 
-    this.apiService.deleteFavoriteDocument(doc.DocumentFavoriteID)
-    .then(async (response) => {
+    try {
+      const response = await this.apiService.deleteFavoriteDocument(doc.DocumentFavoriteID);
       console.log('deleteFavoriteDocument', response);
-      await this.applyFavorite(doc, false, null, onComplete);
-      loading.dismiss();
-    })
-    .catch(async () => {
-      await this.applyFavorite(doc, false, null, onComplete);
-      loading.dismiss();
-    });
+      await this.applyFavorite(doc, false, null);
+    } catch (error) {
+      console.log('deleteFavoriteDocument error', error);
+      await this.applyFavorite(doc, false, null);
+    } finally {
+      await loading.dismiss();
+    }
   }
 
   async backgroundUpdateLibrary() {
@@ -974,11 +971,10 @@ export class UtilsService {
     this.events.publish('updateFolders', menuFolders);
   }
 
-  private async applyFavorite(doc: any, status: boolean, id: string, onComplete?: () => void) {
+  private async applyFavorite(doc: any, status: boolean, id: string) {
     console.log(JSON.stringify(doc, null, 2))
     doc.DocumentFavorite = status;
     doc.DocumentFavoriteID = id;
     await this.sqlite.updateFavoriteDocs(doc.DocumentVersionFileID, doc.DocumentFavoriteID, doc.DocumentFavorite, doc);
-    onComplete?.();
   }
 }

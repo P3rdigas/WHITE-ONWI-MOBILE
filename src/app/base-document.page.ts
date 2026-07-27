@@ -29,7 +29,8 @@ export abstract class BaseDocumentPage {
         );
         if (!canProceed) return;
 
-        await this.utilsService.addFavorite(doc, this.user, () => this.utilsService.backgroundUpdateFavorites());
+        await this.utilsService.addFavorite(doc, this.user);
+        await this.utilsService.backgroundUpdateFavorites();
     }
 
     async removeFavorite(doc: any, indexDoc: number) {
@@ -40,7 +41,8 @@ export abstract class BaseDocumentPage {
         );
         if (!canProceed) return;
 
-        await this.utilsService.removeFavorite(doc, () => this.utilsService.backgroundUpdateFavorites());
+        await this.utilsService.removeFavorite(doc);
+        await this.utilsService.backgroundUpdateFavorites();
     }
 
     protected async canProceedWithNetwork(networkStatus: string, offlineMessage: string, actionMessage: string): Promise<boolean> {
