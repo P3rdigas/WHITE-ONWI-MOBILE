@@ -252,21 +252,73 @@ export class SqliteService {
   }
 
   // TODO: Maybe use aux methods to avoid code duplication for updating into myFavorites
-  async updateFavoriteDocs(DocumentVersionFileID: any, DocumentFavoriteID: any, status: any, doc?: any): Promise<void> {
+  async updateFavoriteDocs(DocumentFavoriteID: any, status: any, doc?: any): Promise<void> {
     const db = this.getDbOrThrow();
 
     // Update favorite status across the tables
     for (const table of ['library', 'myDocuments', 'lastDocsDistributed']) {
       await db.run(`
-        UPDATE ${table} SET DocumentFavoriteID = ?, DocumentFavorite = ? WHERE DocumentVersionFileID = ?`,
-        [DocumentFavoriteID, status ? 1 : 0, DocumentVersionFileID]
+        UPDATE ${table} SET DocumentFavoriteID = ?, DocumentFavorite = ? WHERE DocumentID = ?`,
+        [DocumentFavoriteID, status ? 1 : 0, doc.DocumentID]
       );
     }
 
     if (status && doc) {
-      const existing = await db.query('SELECT id FROM myFavorites WHERE DocumentVersionFileID = ?', [DocumentVersionFileID]);
+      const existing = await db.query('SELECT id FROM myFavorites WHERE DocumentID = ?', [doc.DocumentID]);
 
-      if (!existing.values.length) {
+      if (existing.values.length) {
+        const favRow = existing.values[0];
+
+        await db.run(`
+          UPDATE myFavorites
+          SET DocumentFavorite = ?,
+              DocumentFavoriteID = ?,
+              DocumentType = ?,
+              DownloadStatus = ?,
+              DocumentVersionID = ?,
+              DocumentVersionIcon = ?,
+              DocumentTag = ?,
+              DocumentDesignation = ?,
+              DocumentReference = ?,
+              DocumentDescription = ?,
+              DocumentVersion = ?,
+              DocumentVersionHash = ?,
+              DocumentVersionFileID = ?,
+              DocumentVersionIsLastVersion = ?,
+              DocumentVersionExtension = ?,
+              DocumentVersionFileName = ?,
+              DocumentFolderID = ?,
+              DocumentURLUser = ?,
+              DocumentURLPassword = ?,
+              isReceived = ?,
+              wasUnderstood = ?
+          WHERE id = ?`,
+          [
+            status ? 1 : 0,
+            DocumentFavoriteID,
+            doc.DocumentType,
+            doc.DownloadStatus,
+            doc.DocumentVersionID,
+            doc.DocumentVersionIcon,
+            doc.DocumentTag,
+            doc.DocumentDesignation,
+            doc.DocumentReference,
+            doc.DocumentDescription,
+            doc.DocumentVersion,
+            doc.DocumentVersionHash,
+            doc.DocumentVersionFileID,
+            doc.DocumentVersionIsLastVersion ? 1 : 0,
+            doc.DocumentVersionExtension,
+            doc.DocumentVersionFileName,
+            doc.DocumentFolderID,
+            doc.DocumentURLUser,
+            doc.DocumentURLPassword,
+            doc.isReceived ? 1 : 0,
+            doc.wasUnderstood ? 1 : 0,
+            favRow.id
+          ]
+        );
+      } else {
         await db.run(`
           INSERT INTO myFavorites (
             DocumentID,
@@ -319,7 +371,7 @@ export class SqliteService {
         );
       }
     } else {
-      await db.run('DELETE FROM myFavorites WHERE DocumentVersionFileID = ?', [DocumentVersionFileID]);
+      await db.run('DELETE FROM myFavorites WHERE DocumentID = ?', [doc.DocumentID]);
     }
   }
 

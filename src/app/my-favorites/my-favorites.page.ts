@@ -84,6 +84,7 @@ export class MyFavoritesPage extends BaseDocumentPage implements OnInit {
   // TODO: Accepting files must triggers an update of the favorites list probably
   async getFavorites() {
     this.sqlite.getMyFavorites().then((documents: any) => {
+      console.log('getFavorites RESULT', JSON.stringify(documents, null, 2));
       this.fullDocuments = this.documents = null;
       this.acceptedDocuments = [];
       this.notAcceptedDocuments = [];
@@ -91,6 +92,8 @@ export class MyFavoritesPage extends BaseDocumentPage implements OnInit {
       if (documents && documents.length) {
         this.fullDocuments = [...documents];
         this.applySort();
+        console.log('accepted', JSON.stringify(this.acceptedDocuments, null, 2));
+        console.log('notAccepted', JSON.stringify(this.notAcceptedDocuments, null, 2));
       }
     })
     .catch((error) => {

@@ -44,16 +44,18 @@ export class ModalApprovalComponent implements OnInit {
       Comments: this.data.Comments,
     };
 
+    // TODO: Deploy the API
     this.apiService.postToApproveDocuments(data.DistributionID, obj)
     .then(async (response: any) => {
       console.log('postToApproveDocuments', response);
 
-      // TODO: Deploy the API
-      if (false && response?.isReceived && response?.wasUnderstood) {
+      if (response?.isReceived && response?.wasUnderstood) {
         const prepared = await this.utilsService.prepareDocumentsNew([response], 'myDocuments');
         if (prepared?.length) {
           await this.sqliteService.updateMyDocumentsList(prepared);
-        } 
+        }
+
+        // TODO: Verify if it needs to update the myFavorites list too
 
         await this.sqliteService.deleteLastDocDistributed(response.DocumentID);
       }

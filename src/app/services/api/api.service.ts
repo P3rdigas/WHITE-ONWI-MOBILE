@@ -134,6 +134,14 @@ export class ApiService {
     return firstValueFrom(this._http.post(url, data, options));
   }
 
+  async updateFavoriteDocument(documentFavoriteID: string, data: object): Promise<any> {
+    const url = `${environment.OdataEndpoint}UserDocumentsFavorite(${documentFavoriteID})`;
+    console.log('updateFavoriteDocument url', url);
+
+    const options = await this.getBasicOptions();
+    return firstValueFrom(this._http.patch(url, data, options));
+  }
+
   async deleteFavoriteDocument(documentID: string): Promise<any> {
     const url = `${environment.OdataEndpoint}UserDocumentsFavorite(${documentID})`;
     console.log('postFavoriteDocument url', url);

@@ -158,6 +158,10 @@ export class LoginPage implements OnInit {
             return true;
           })
           .catch(async (error2) => {
+            // TODO: Print an error message if the certificate is invalid or expired, or if the server is unreachable
+            console.log('validateUser failed - status:', error2.status);
+            console.log('validateUser failed - message:', error2.message);
+            console.log('validateUser failed - error:', JSON.stringify(error2.error));
             loading.dismiss();
             if (localStorage.getItem('onwi.User')) {
               this.navCtrl.navigateForward('/library');

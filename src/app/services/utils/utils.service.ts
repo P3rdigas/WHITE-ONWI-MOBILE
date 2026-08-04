@@ -216,57 +216,6 @@ export class UtilsService {
       // Normalize API typo — API returns 'DocumentVersionExtention' (missing 's')
       doc.DocumentVersionExtension = doc.DocumentVersionExtension ?? doc.DocumentVersionExtention ?? null;
 
-      doc.DocumentFavorite = false;
-      doc.DownloadStatus = '';
-
-      // TODO:
-      // Check if the document is in myFavorites
-      await this.sqlite.getMyFavorites(undefined, doc.DocumentVersionFileID).then(async (favorites: any) => {
-        if (favorites && favorites.length) {
-          for (const docFav of favorites) {
-            if (doc.DocumentVersionFileID === docFav.DocumentVersionFileID) {
-              doc.DocumentFavorite = true;
-              doc.DocumentFavoriteID = docFav.DocumentFavoriteID;
-              doc.DownloadStatus = docFav.DownloadStatus;
-
-              // Check if HASH has changed
-              if (doc.DocumentVersionHash !== docFav.DocumentVersionHash) {
-                doc.DownloadStatus = 'Waiting';
-                // Removes old document
-                await this.removeLocalFile(doc);
-              }
-            }
-          }
-        }
-      });
-      if (whereFrom === 'myFavorites') {
-        doc.DocumentFavorite = true;
-        doc.DocumentFavoriteID = doc.ID;
-      }
-
-      // Check if the document is in myDocument
-      await this.sqlite.getMyDocuments(undefined, doc.DocumentVersionFileID).then(async (myDocs: any) => {
-        if (myDocs && myDocs.length) {
-          for (const myDoc of myDocs) {
-            if (doc.DocumentVersionFileID === myDoc.DocumentVersionFileID) {
-              doc.DownloadStatus = myDoc.DownloadStatus;
-
-              // Check if HASH has changed
-              if (doc.DocumentVersionHash !== myDoc.DocumentVersionHash) {
-                doc.DownloadStatus = 'Waiting';
-                // Removes old document
-                await this.removeLocalFile(doc);
-              }
-            }
-          }
-        }
-      });
-
-      // Se for MyDocuments ou MyFavorites já deve estar na espera do download
-      if (doc.DownloadStatus === '' && (whereFrom === 'myDocuments' || whereFrom === 'myFavorites')) {
-        doc.DownloadStatus = 'Waiting';
-      }
-
       // Document icon
       if (doc.DocumentVersionIcon) {
         doc.DocumentVersionIcon = 'data:image/png;base64,' + doc.DocumentVersionIcon;
@@ -313,6 +262,71 @@ export class UtilsService {
         doc.DocumentVersion = '(Valid until ' + doc.DocumentExpirationDate[0] + ')';
       }
 
+      doc.DocumentFavorite = false;
+      doc.DownloadStatus = '';
+
+      // TODO:
+      // Check if there is any favorite for this DocumentID
+      const favsForDoc = await this.sqlite.getMyFavorites(doc.DocumentID);
+
+      if (favsForDoc && favsForDoc.length) {
+        const fav = favsForDoc[0];
+
+        if (doc.DocumentVersionID === fav.DocumentVersionID) {
+          doc.DocumentFavorite = fav.DocumentFavorite;
+          doc.DocumentFavoriteID = fav.DocumentFavoriteID;
+          doc.DownloadStatus = fav.DownloadStatus;
+        } else {
+          doc.DocumentFavorite = true;
+          doc.DocumentFavoriteID = fav.DocumentFavoriteID;
+          doc.DownloadStatus = 'Waiting';
+          
+          await this.removeLocalFile(fav);
+          await this.updateFavorite(doc); 
+        }
+      }
+
+      // If the document is marked as favorite, but wasn't in the local database
+      if (whereFrom === 'myFavorites') {
+        doc.DocumentFavorite = true;
+        doc.DocumentFavoriteID = doc.ID;
+      }
+
+      // TODO:
+      // Check if the document is in myDocument
+      const myDocs = await this.sqlite.getMyDocuments(doc.DocumentID);
+
+      if (myDocs && myDocs.length) {
+        const oldDoc = myDocs[0];
+
+        if (doc.DocumentVersionID !== oldDoc.DocumentVersionID) {
+          doc.DownloadStatus = 'Waiting';
+          await this.removeLocalFile(doc);
+        }
+      }
+      
+      // .then(async (myDocs: any) => {
+      //   if (myDocs && myDocs.length) {
+      //     for (const myDoc of myDocs) {
+      //       if (doc.DocumentVersionFileID === myDoc.DocumentVersionFileID) {
+      //         doc.DownloadStatus = myDoc.DownloadStatus;
+
+      //         // Check if HASH has changed
+      //         if (doc.DocumentVersionHash !== myDoc.DocumentVersionHash) {
+      //           doc.DownloadStatus = 'Waiting';
+      //           // Removes old document
+      //           await this.removeLocalFile(doc);
+      //         }
+      //       }
+      //     }
+      //   }
+      // });
+
+      // Se for MyDocuments ou MyFavorites já deve estar na espera do download
+      if (doc.DownloadStatus === '' && (whereFrom === 'myDocuments' || whereFrom === 'myFavorites')) {
+        doc.DownloadStatus = 'Waiting';
+      }
+
       documentsTemp.push(doc);
     }
     console.log('>>>>>>>>>>>>> prepareDocumentsNew ENDED <<<<<<<<<<<<<', documentsTemp);
@@ -333,7 +347,7 @@ export class UtilsService {
     const loading = await this.createLoading();
     await loading.present();
 
-    // TODO: Date should be set in the API
+    // TODO: Date should be set in the API as the id
     const id = Guid.create().toString();
     const timeNow = new Date();
     const obj = {
@@ -353,6 +367,32 @@ export class UtilsService {
     } catch (error) {
       console.log('postFavoriteDocument error', error);
       await this.applyFavorite(doc, true, id);
+    } finally {
+      await loading.dismiss();
+    }
+  }
+
+  async updateFavorite(doc: any) {
+    const loading = await this.createLoading();
+    await loading.present();
+
+    // TODO: Date should be set in the API as the id
+    const timeNow = new Date();
+    const patchObj = {
+      DocumentVersionID: doc.DocumentVersionID,
+      Status: true,
+      Date: timeNow.toJSON(),
+      Comments: 'Added from APP'
+    };
+
+    try {
+      // Update in the database
+      await this.apiService.updateFavoriteDocument(doc.DocumentFavoriteID, patchObj);
+
+      // Update in the local SQLite
+      await this.applyFavorite(doc, true, doc.DocumentFavoriteID);
+    } catch (error) {
+      console.log('updateFavoriteDocument error', error);
     } finally {
       await loading.dismiss();
     }
@@ -524,14 +564,13 @@ export class UtilsService {
 
   async backgroundUpdateAll() {
     console.log('~~~~~~~~~~~~~~~~ backgroundUpdateAll BEGAN ~~~~~~~~~~~~~~~~');
-    await Promise.all([
-      this.getPermissionsOffline(),
-      this.updateFolders(),
-      this.backgroundUpdateMyDocuments(),
-      this.backgroundUpdateFavorites(),
-      this.backgroundUpdateLibrary(),
-      this.backgroundUpdateLastDocsDistributed()
-    ]);
+    // The order mather and should be sequential, because some functions depend on the previous ones to be completed first
+    await this.getPermissionsOffline();
+    await this.updateFolders();
+    await this.backgroundUpdateFavorites();
+    await this.backgroundUpdateLibrary();
+    await this.backgroundUpdateMyDocuments();
+    await this.backgroundUpdateLastDocsDistributed();
     console.log('~~~~~~~~~~~~~~~~ backgroundUpdateAll ENDED ~~~~~~~~~~~~~~~~');
   }
 
@@ -697,6 +736,7 @@ export class UtilsService {
     await this.apiService.logDocumentOpen(doc, userID);
   }
 
+  // TODO: Must check if the file exists before trying to remove it
   async removeLocalFile(doc: any): Promise<any> {
     try {
       const directory = this.platform.is('ios') ? Directory.Documents : Directory.Data;
@@ -986,6 +1026,6 @@ export class UtilsService {
     console.log(JSON.stringify(doc, null, 2))
     doc.DocumentFavorite = status;
     doc.DocumentFavoriteID = id;
-    await this.sqlite.updateFavoriteDocs(doc.DocumentVersionFileID, doc.DocumentFavoriteID, doc.DocumentFavorite, doc);
+    await this.sqlite.updateFavoriteDocs(doc.DocumentFavoriteID, doc.DocumentFavorite, doc);
   }
 }
