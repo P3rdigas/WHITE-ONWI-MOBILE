@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, NgZone } from '@angular/core';
 import { Validators, FormBuilder, FormGroup, FormControl } from '@angular/forms';
 import { ApiService } from '../services/api/api.service';
 import { UtilsService } from '../services/utils/utils.service';
@@ -21,8 +21,15 @@ export class LoginPage implements OnInit {
   public networkStatus: any = localStorage.getItem('onwi.networkStatus') ? localStorage.getItem('onwi.networkStatus') : 'offline';
   private isLoggedIn: boolean = false;
   // TODO: Maybe use protected everywhere
+  protected showPassword: boolean = false;
   protected isResetMode: boolean = false;
   protected resetMessage: string = '';
+
+  // For UI animations
+  @ViewChild('titleContainer') titleContainer!: ElementRef<HTMLElement>;
+  @ViewChild('loginCard') loginCard!: ElementRef<HTMLElement>;
+
+  private readonly wipeDuration: number = 350; // Duration in milliseconds
 
   constructor(
     private formBuilder: FormBuilder,
@@ -31,7 +38,8 @@ export class LoginPage implements OnInit {
     private events: Events,
     private navCtrl: NavController,
     private menu: MenuController,
-    private sqlite: SqliteService
+    private sqlite: SqliteService,
+    private ngZone: NgZone
   ) { }
 
   ngOnInit() {
@@ -186,8 +194,96 @@ export class LoginPage implements OnInit {
   }
 
   toggleResetMode() {
-    this.isResetMode = !this.isResetMode;
     this.resetMessage = '';
+
+    const loginCardEl = this.loginCard.nativeElement;
+    const titleEl = this.titleContainer.nativeElement;
+
+    // Lock the current height
+    const oldHeight = loginCardEl.getBoundingClientRect().height;
+    loginCardEl.style.height = `${oldHeight}px`;
+    loginCardEl.style.overflow = 'hidden';
+
+    // Phase 1: erase current content from bottom to top and title fades/pops OUT
+    const eraseAnimation = loginCardEl.animate(
+      [
+        { clipPath: 'inset(0% 0% 0% 0%)' },
+        { clipPath: 'inset(0% 0% 100% 0%)' }
+      ],
+      { duration: this.wipeDuration, easing: 'ease-in', fill: 'forwards' }
+    );
+
+    const titleLeaveAnim = titleEl.animate(
+      [
+        { opacity: 1, transform: 'scale(1)' },
+        { opacity: 0, transform: 'scale(0.9)' }
+      ],
+      { duration: this.wipeDuration * 0.6, easing: 'ease-in', fill: 'forwards' }
+    );
+
+    // Content swaps after erase
+    eraseAnimation.onfinish = () => {
+      eraseAnimation.commitStyles();
+      eraseAnimation.cancel();
+      titleLeaveAnim.commitStyles();
+      titleLeaveAnim.cancel();
+
+      // Re-enter Angular's zone so the state change actually triggers change detection and the *ngIf content updates
+      this.ngZone.run(() => {
+        this.isResetMode = !this.isResetMode;
+      });
+
+      requestAnimationFrame(() => {
+        // Measure the height of the NEW content
+        loginCardEl.style.height = 'auto';
+        const newHeight = loginCardEl.scrollHeight;
+        loginCardEl.style.height = `${oldHeight}px`; // lock back before animating
+
+        // Phase 2a: reveal new content, top edge drops down
+        const revealAnim = loginCardEl.animate(
+          [
+            { clipPath: 'inset(0% 0% 100% 0%)' },
+            { clipPath: 'inset(0% 0% 0% 0%)' }
+          ],
+          { duration: this.wipeDuration, easing: 'ease-out', fill: 'forwards' }
+        );
+
+        // Phase 2b: height animates independently, own duration/easing
+        const heightAnim = loginCardEl.animate(
+          [
+            { height: `${oldHeight}px` },
+            { height: `${newHeight}px` }
+          ],
+          { duration: this.wipeDuration + 30, easing: 'ease-in-out', fill: 'forwards' }
+        );
+
+        // Phase 2c: title fades/pops IN, synced with the card reveal
+        const titleEnterAnim = titleEl.animate(
+          [
+            { opacity: 0, transform: 'scale(0.9)' },
+            { opacity: 1, transform: 'scale(1)' }
+          ],
+          { duration: this.wipeDuration, easing: 'ease-out', fill: 'forwards' }
+        );
+
+        revealAnim.onfinish = () => {
+          revealAnim.commitStyles();
+          revealAnim.cancel();
+        };
+
+        heightAnim.onfinish = () => {
+          heightAnim.commitStyles();
+          heightAnim.cancel();
+          loginCardEl.style.height = '';
+          loginCardEl.style.overflow = '';
+        };
+
+        titleEnterAnim.onfinish = () => {
+          titleEnterAnim.commitStyles();
+          titleEnterAnim.cancel();
+        };
+      });
+    }
   }
 
   async requestReset() {
