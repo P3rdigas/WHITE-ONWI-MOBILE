@@ -1,0 +1,30 @@
+.progress-modal-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1vh;
+    color: black;
+
+    ion-spinner {
+        margin-top: 20px;
+        color: var(--white-dark-blue);
+    }
+
+    .stage-label {
+        font-weight: 400;
+        text-align: center;
+    }
+
+    ion-progress-bar {
+        width: 75%;
+        border-radius: 8px;
+        --background: var(--white-gray);
+        --progress-background: var(--white-dark-blue);
+    }
+
+    .stage-percent {
+        font-weight: 400;
+        opacity: 0.85;
+    }
+}
+

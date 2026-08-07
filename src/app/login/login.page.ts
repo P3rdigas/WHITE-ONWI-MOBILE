@@ -6,6 +6,7 @@ import { NavController, MenuController } from '@ionic/angular';
 import { Events } from '../services/events/events';
 import { SqliteService } from '../services/sqlite/sqlite.service';
 import { environment } from 'src/environments/environment';
+import { LoadingProgressService } from '../services/loading-progress/loading-progress.service';
 
 @Component({
   selector: 'app-login',
@@ -35,6 +36,7 @@ export class LoginPage implements OnInit {
     private formBuilder: FormBuilder,
     private apiService: ApiService,
     private utilsService: UtilsService,
+    private loadingProgress: LoadingProgressService,
     private events: Events,
     private navCtrl: NavController,
     private menu: MenuController,
@@ -101,8 +103,12 @@ export class LoginPage implements OnInit {
           alert.present();
         }
       } else {
-        const loading = await this.utilsService.createLoading();
-        loading.present();
+        // Total steps: encryptPass + validateUser + 6 backgroundUpdateAll steps = 8
+        this.loadingProgress.start(8);
+        const progressModal = await this.utilsService.createProgressModal();
+        progressModal.present();
+
+        this.loadingProgress.nextStep('Encrypting password...');
 
         this.apiService.encryptPass(this.loginForm.value.password)
         .then(async (response): Promise<any> => {
@@ -111,9 +117,11 @@ export class LoginPage implements OnInit {
           if (password.retorno == null) {
             const alert = await this.utilsService.createAlert('Something went wrong', 'We had a problem with your password. Please, contact the system administration.');
             alert.present();
-            loading.dismiss();
+            progressModal.dismiss();
             return false;
           }
+
+          this.loadingProgress.nextStep('Validating user...');
 
           this.apiService.validateUser(this.loginForm.value.email, password.retorno)
           // .then(async (response2) => {
@@ -147,18 +155,19 @@ export class LoginPage implements OnInit {
                     await this.utilsService.backgroundUpdateAll();
                   }
 
-                  loading.dismiss();
+                  this.loadingProgress.finish();
+                  setTimeout(() => progressModal.dismiss(), 1000); // brief pause to let the user see the 'Done 100%' message
 
                   this.utilsService.loginCompleted = true;
                   this.navCtrl.navigateRoot(['/my-documents']);
                 });
               } else {
-                loading.dismiss();
+                progressModal.dismiss();
                 const alert = await this.utilsService.createAlert('Something went wrong', 'onwi Mobile is deactivated please contact your company\'s IT Department');
                 alert.present();
               }
             } else {
-              loading.dismiss();
+              progressModal.dismiss();
               const toast = await this.utilsService.createToast('Please, enter a valid email and password.');
               await toast.present();
             }
@@ -170,7 +179,7 @@ export class LoginPage implements OnInit {
             console.log('validateUser failed - status:', error2.status);
             console.log('validateUser failed - message:', error2.message);
             console.log('validateUser failed - error:', JSON.stringify(error2.error));
-            loading.dismiss();
+            progressModal.dismiss();
             if (localStorage.getItem('onwi.User')) {
               this.navCtrl.navigateForward('/library');
             } else {
@@ -182,7 +191,7 @@ export class LoginPage implements OnInit {
           return true;
         })
         .catch(async (error) => {
-          loading.dismiss();
+          progressModal.dismiss();
           const alert = await this.utilsService.createAlert('Something went wrong', 'onwi Mobile - Error on password.');
           alert.present();
         });

@@ -1,3 +1,10 @@
+.progress-modal {
+  --width: 75vw;
+  --height: auto;
+  --border-radius: 16px;
+  --background: white;
+}
+
 ion-loading.loading {
   --background: white;
   --spinner-color: var(--white-dark-blue);

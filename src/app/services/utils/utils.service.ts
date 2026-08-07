@@ -1,5 +1,5 @@
-import { Injectable } from '@angular/core';
-import { ToastController, LoadingController, AlertController, AlertButton, NavController, Platform } from '@ionic/angular';
+import { Component, Injectable } from '@angular/core';
+import { ToastController, LoadingController, AlertController, AlertButton, NavController, Platform, ModalController } from '@ionic/angular';
 import { Router } from '@angular/router';
 import { ApiService } from '../api/api.service';
 import { Events } from '../events/events';
@@ -11,6 +11,9 @@ import { Guid } from 'guid-typescript';
 import { SqliteService } from '../sqlite/sqlite.service';
 import { FileOpener } from '@capacitor-community/file-opener';
 import { LocalNotifications } from '@capacitor/local-notifications';
+import { LoadingProgressComponent } from 'src/app/components/loading-progress/loading-progress.component';
+import { LoadingProgressService } from '../loading-progress/loading-progress.service';
+import { ResetPasswordPageModule } from 'src/app/reset-password/reset-password.module';
 
 @Injectable({
   providedIn: 'root'
@@ -22,10 +25,12 @@ export class UtilsService {
   constructor(
     private platform: Platform,
     private toastController: ToastController,
+    private modalController: ModalController,
     private loadingController: LoadingController,
     private alertController: AlertController,
     private apiService: ApiService,
     private sqlite: SqliteService,
+    private loadingProgress: LoadingProgressService,
     private events: Events,
     private navCtrl: NavController,
     private router: Router,
@@ -47,6 +52,16 @@ export class UtilsService {
     user.Photo = user.Photo ? 'data:image/png;base64,' + user.Photo : 'assets/images/logo.png';
 
     return user;
+  }
+
+  async createProgressModal(): Promise<HTMLIonModalElement> {
+    const modal = await this.modalController.create({
+      component: LoadingProgressComponent,
+      cssClass: 'progress-modal',
+      backdropDismiss: false
+    });
+
+    return modal;
   }
 
   async createLoading(title?: string, seconds?: number): Promise<HTMLIonLoadingElement> {
@@ -272,17 +287,24 @@ export class UtilsService {
       if (favsForDoc && favsForDoc.length) {
         const fav = favsForDoc[0];
 
+        console.log('SAME FAVORITE: ', whereFrom);
+        console.log('SAME FAVORITE: ', JSON.stringify(doc, null, 2));
+        console.log('SAME FAVORITE: ', JSON.stringify(doc.DocumentVersionID, null, 2));
+        console.log('SAME FAVORITE: ', JSON.stringify(fav, null, 2));
+
         if (doc.DocumentVersionID === fav.DocumentVersionID) {
           doc.DocumentFavorite = fav.DocumentFavorite;
           doc.DocumentFavoriteID = fav.DocumentFavoriteID;
           doc.DownloadStatus = fav.DownloadStatus;
         } else {
-          doc.DocumentFavorite = true;
-          doc.DocumentFavoriteID = fav.DocumentFavoriteID;
-          doc.DownloadStatus = 'Waiting';
-          
-          await this.removeLocalFile(fav);
-          await this.updateFavorite(doc); 
+          if (doc.DocumentVersionIsLastVersion) {
+            doc.DocumentFavorite = true;
+            doc.DocumentFavoriteID = fav.DocumentFavoriteID;
+            doc.DownloadStatus = 'Waiting';
+            
+            await this.removeLocalFile(fav);
+            await this.updateFavorite(doc); 
+          }
         }
       }
 
@@ -299,7 +321,7 @@ export class UtilsService {
       if (myDocs && myDocs.length) {
         const oldDoc = myDocs[0];
 
-        if (doc.DocumentVersionID !== oldDoc.DocumentVersionID) {
+        if (doc.DocumentVersionID !== oldDoc.DocumentVersionID && doc.DocumentVersionIsLastVersion) {
           doc.DownloadStatus = 'Waiting';
           await this.removeLocalFile(doc);
         }
@@ -372,7 +394,7 @@ export class UtilsService {
     }
   }
 
-  async updateFavorite(doc: any) {
+  private async updateFavorite(doc: any) {
     const loading = await this.createLoading();
     await loading.present();
 
@@ -565,11 +587,22 @@ export class UtilsService {
   async backgroundUpdateAll() {
     console.log('~~~~~~~~~~~~~~~~ backgroundUpdateAll BEGAN ~~~~~~~~~~~~~~~~');
     // The order mather and should be sequential, because some functions depend on the previous ones to be completed first
+    this.loadingProgress.nextStep('Loading permissions...');
     await this.getPermissionsOffline();
+
+    this.loadingProgress.nextStep('Updating folders...');
     await this.updateFolders();
+
+    this.loadingProgress.nextStep('Syncing favorites...');
     await this.backgroundUpdateFavorites();
+
+    this.loadingProgress.nextStep('Syncing library...');
     await this.backgroundUpdateLibrary();
+
+    this.loadingProgress.nextStep('Syncing my documents...');
     await this.backgroundUpdateMyDocuments();
+
+    this.loadingProgress.nextStep('Syncing last documents...');
     await this.backgroundUpdateLastDocsDistributed();
     console.log('~~~~~~~~~~~~~~~~ backgroundUpdateAll ENDED ~~~~~~~~~~~~~~~~');
   }

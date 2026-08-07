@@ -1,0 +1,6 @@
+<div class="progress-modal-content">
+  <ion-spinner name="crescent"></ion-spinner>
+  <p class="stage-label">{{ stage.label }}</p>
+  <ion-progress-bar [value]="stage.progress"></ion-progress-bar>
+  <p class="stage-percentage">{{ (stage.progress * 100) | number: '1.0-0' }}%</p>
+</div>
