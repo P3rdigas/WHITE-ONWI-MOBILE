@@ -53,7 +53,7 @@ export class UtilsService {
     return this.loadingController.create({
       message: title,
       duration: seconds,
-      cssClass: 'loadingAlphacode',
+      cssClass: 'loading',
       spinner: 'crescent'
     });
   }
