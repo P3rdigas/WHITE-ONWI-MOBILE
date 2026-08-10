@@ -1,45 +1,40 @@
-<ion-header mode="ios">
+<ion-header mode="ios" class="app-header">
   <ion-toolbar mode="ios">
-    <ion-grid>
-      <ion-row>
-        <ion-col size="5">
-          <div id="logo">
-            <ion-img src="assets/images/logo.png"></ion-img>
-          </div>
-        </ion-col>
-        <ion-col size="5">
-          <ion-text id="nome">
-            <p>{{ user.Name }}</p>
-          </ion-text>
-          <ion-text id="sair" (click)="exit()">
-            <p>Exit <ion-icon size="small" src="assets/images/exit.svg"></ion-icon></p>
-          </ion-text>
-        </ion-col>
-        <ion-col size="2">
-          <ion-avatar id="img-perfil">
-            <ion-img [src]="user.Photo"></ion-img>
-          </ion-avatar>
-        </ion-col>
-        <ion-col size="12">
-          <ion-img src="assets/images/divisor.svg"></ion-img>
-        </ion-col>
-      </ion-row>
-    </ion-grid>
+    <div class="header-row">
+      <div class="logo-wrap">
+        <ion-img src="assets/images/white_onwi_logo.png"></ion-img>
+      </div>
+
+      <div class="user-info">
+        <p class="username">{{ user.Name }}</p>
+        <div class="logout" (click)="exit()">
+          <span>Logout</span>
+          <ion-icon name="log-out"></ion-icon>
+        </div>
+      </div>
+
+      <ion-avatar class="profile-avatar">
+        <img [src]="user.Photo" />
+      </ion-avatar>
+    </div>
+
+    <ion-img src="assets/images/divider.svg" class="header-divider"></ion-img>
   </ion-toolbar>
 </ion-header>
 
 <ion-content [scrollEvents]="true" (ionScroll)="logScrolling($event)">
   <ion-grid>
     <ion-row>
-      <!-- <ion-col size="5" offset="1" class="ion-padding-horizontal"> -->
-        <ion-col size="12" class="ion-padding-horizontal ion-text-right">
-        <ion-button mode="ios" color="medium" size="small" expand="block" (click)="refresh(true)">
-          <ion-icon slot="start" src="assets/images/img-refresh.svg"></ion-icon> Refresh
+      <ion-col size="10">
+        <ion-searchbar mode="ios" placeholder="Search documents" [(ngModel)]="search" (ionChange)="updateFilters()"></ion-searchbar>
+      </ion-col>
+
+      <ion-col size="2" class="ion-padding-horizontal ion-text-right">
+        <ion-button mode="ios" size="small" expand="block" (click)="refresh(true)">
+          <ion-icon name="refresh-outline"></ion-icon>
         </ion-button>
       </ion-col>
-      <ion-col size="12">
-        <ion-searchbar mode="ios" placeholder="" [(ngModel)]="search" (ionChange)="updateFilters()"></ion-searchbar>
-      </ion-col>
+      
     </ion-row>
 
     <!-- View mode toggle -->

@@ -1,36 +1,111 @@
-ion-content {
-  --background: #FCFCFC;
-}
-ion-header ion-toolbar {
-  --border-width: 0px;
-  --background: #FCFCFC;
-}
-ion-header ion-toolbar #logo {
-  -webkit-box-shadow: 0 3px 6px rgba(0,0,0,.16);
-  box-shadow: 0 3px 6px rgba(0,0,0,.16);
-  border-radius: 5px;
-  width: 100%;
-  padding: 5px 10px;
-}
-ion-header ion-toolbar #logo ion-img {
-  height: 45px !important;
-}
-ion-header ion-toolbar #img-perfil {
-  -webkit-box-shadow: 0 3px 6px rgba(0,0,0,.16);
-  box-shadow: 0 3px 6px rgba(0,0,0,.16);
-}
-ion-header ion-toolbar #nome {
-  color: #C4C4C4;
-}
-ion-header ion-toolbar #sair {
-  color: #2F2F2F;
-}
-ion-header ion-toolbar #sair ion-icon {
-  vertical-align: bottom;
-}
-ion-header ion-toolbar #nome p,
-ion-header ion-toolbar #sair p {
-  text-align: right;
-  margin-top: 0px;
-  margin-bottom: 2px;
+// ion-content {
+//   --background: #FCFCFC;
+// }
+// ion-header ion-toolbar {
+//   --border-width: 0px;
+//   --background: #FCFCFC;
+// }
+// ion-header ion-toolbar #logo {
+//   -webkit-box-shadow: 0 3px 6px rgba(0,0,0,.16);
+//   box-shadow: 0 3px 6px rgba(0,0,0,.16);
+//   border-radius: 5px;
+//   width: 100%;
+//   padding: 5px 10px;
+// }
+// ion-header ion-toolbar #logo ion-img {
+//   height: 45px !important;
+// }
+// ion-header ion-toolbar #img-perfil {
+//   -webkit-box-shadow: 0 3px 6px rgba(0,0,0,.16);
+//   box-shadow: 0 3px 6px rgba(0,0,0,.16);
+// }
+// ion-header ion-toolbar #nome {
+//   color: #C4C4C4;
+// }
+// ion-header ion-toolbar #sair {
+//   color: #2F2F2F;
+// }
+// ion-header ion-toolbar #sair ion-icon {
+//   vertical-align: bottom;
+// }
+// ion-header ion-toolbar #nome p,
+// ion-header ion-toolbar #sair p {
+//   text-align: right;
+//   margin-top: 0px;
+//   margin-bottom: 2px;
+// }
+
+.app-header {
+  font-family: var(--app-font-brand);
+
+  ion-toolbar {
+    --background: white;
+    padding-top: 0 !important;
+  }
+
+  .header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2vw;
+    padding: 2vw 2vw;
+
+    .logo-wrap {
+      width: 45%;
+    }
+
+    .user-info {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 1vw;
+
+      .username {
+        margin: 0;
+        font-weight: 700;
+        font-size: 15px;
+        color: black;
+      }
+
+      .logout {
+        display: flex;
+        align-items: center;
+        gap: 1vw;
+        margin: 0;
+        font-size: 13px;
+        font-weight: 400;
+        color: black;
+
+        ion-icon {
+          font-size: 17.5px;
+          color: var(--white-dark-blue);
+        }
+      }
+    }
+
+    .profile-avatar {
+      width: 12.5vw;
+      height: 12.5vw;
+      flex-shrink: 0;
+      box-shadow:
+        2px 3px 6px rgba(0, 0, 0, 0.15),
+        3px 5px 12px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+    }
+  }
+
+  .header-divider {
+    width: 100%;
+    height: 6px;
+    display: block;
+    object-fit: cover;
+  }
 }
