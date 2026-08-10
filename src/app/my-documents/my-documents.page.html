@@ -91,8 +91,8 @@
           <b>{{ doc.DocumentTag }} </b>{{ doc.DocumentDesignation }}
         </ion-label>
         <ion-badge slot="end" color="medium" mode="ios">{{ doc.DocumentVersion }}</ion-badge>
-        <ion-icon src="assets/images/icon-star.svg" slot="end" *ngIf="!doc.DocumentFavorite" style="font-size: 1em;" (click)="addFavorite(doc, i)"></ion-icon>
-        <ion-icon src="assets/images/icon-starfull.svg" slot="end" *ngIf="doc.DocumentFavorite" style="font-size: 1em;" (click)="removeFavorite(doc, i)"></ion-icon>
+        <ion-icon src="assets/images/icon-star.svg" slot="end" *ngIf="!doc.DocumentFavorite && doc.DocumentVersionIsLastVersion" style="font-size: 1em;" (click)="addFavorite(doc, i)"></ion-icon>
+        <ion-icon src="assets/images/icon-starfull.svg" slot="end" *ngIf="doc.DocumentFavorite && doc.DocumentVersionIsLastVersion" style="font-size: 1em;" (click)="removeFavorite(doc, i)"></ion-icon>
         <ion-icon src="assets/images/icon-updated.svg" slot="end" *ngIf="doc.DocumentVersionIsLastVersion" style="font-size: 1em;"></ion-icon>
         <ion-icon src="assets/images/icon-download.svg" slot="end" *ngIf="doc.DownloadStatus && doc.DownloadStatus === 'Waiting'" style="font-size: 1em;"></ion-icon>
         <ion-icon src="assets/images/icon-available.svg" slot="end" *ngIf="doc.DownloadStatus && doc.DownloadStatus === 'Downloaded'" style="font-size: 1em;"></ion-icon>

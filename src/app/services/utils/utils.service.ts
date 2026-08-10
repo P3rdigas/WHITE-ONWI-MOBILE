@@ -225,7 +225,30 @@ export class UtilsService {
   async prepareDocumentsNew(documents: any[], whereFrom: string) {
     console.log('>>>>>>>>>>>>> prepareDocumentsNew BEGAN <<<<<<<<<<<<<', documents, whereFrom);
 
-    const documentsTemp: object[] = [];
+    // For myDocuments, keep only the most recent version of each document
+    if (whereFrom === 'myDocuments') {
+      const latestDocuments = new Map<any, any>();
+
+      for (const doc of documents) {
+        const existing = latestDocuments.get(doc.DocumentID);
+
+        if (!existing) {
+          latestDocuments.set(doc.DocumentID, doc);
+          continue;
+        }
+
+        const existingDate = new Date(existing.Date).getTime();
+        const currentDate = new Date(doc.Date).getTime();
+
+        if (currentDate > existingDate) {
+          latestDocuments.set(doc.DocumentID, doc);
+        }
+      }
+
+      documents = Array.from(latestDocuments.values());
+    }
+
+    const documentsTemp: any[] = [];
     for (const doc of documents) {
       // TODO: Change in the API or in the Database (Table Files also has a typo)
       // Normalize API typo — API returns 'DocumentVersionExtention' (missing 's')
@@ -280,17 +303,11 @@ export class UtilsService {
       doc.DocumentFavorite = false;
       doc.DownloadStatus = '';
 
-      // TODO:
       // Check if there is any favorite for this DocumentID
       const favsForDoc = await this.sqlite.getMyFavorites(doc.DocumentID);
 
       if (favsForDoc && favsForDoc.length) {
         const fav = favsForDoc[0];
-
-        console.log('SAME FAVORITE: ', whereFrom);
-        console.log('SAME FAVORITE: ', JSON.stringify(doc, null, 2));
-        console.log('SAME FAVORITE: ', JSON.stringify(doc.DocumentVersionID, null, 2));
-        console.log('SAME FAVORITE: ', JSON.stringify(fav, null, 2));
 
         if (doc.DocumentVersionID === fav.DocumentVersionID) {
           doc.DocumentFavorite = fav.DocumentFavorite;
@@ -316,16 +333,24 @@ export class UtilsService {
 
       // TODO:
       // Check if the document is in myDocument
-      const myDocs = await this.sqlite.getMyDocuments(doc.DocumentID);
+      if (whereFrom === 'myDocuments') {
+        const myDocs = await this.sqlite.getMyDocuments(doc.DocumentID);
 
-      if (myDocs && myDocs.length) {
-        const oldDoc = myDocs[0];
+        if (myDocs && myDocs.length) {
+          const oldDoc = myDocs[0];
 
-        if (doc.DocumentVersionID !== oldDoc.DocumentVersionID && doc.DocumentVersionIsLastVersion) {
-          doc.DownloadStatus = 'Waiting';
-          await this.removeLocalFile(doc);
+          const oDate = new Date(oldDoc.DocumentDate);
+          const dDate = new Date(doc.Date);
+
+          if (doc.DocumentVersionID !== oldDoc.DocumentVersionID && dDate.getTime() <= oDate.getTime()) {
+            continue;
+          } else {
+            doc.DownloadStatus = 'Waiting';
+            await this.removeLocalFile(oldDoc);
+          }
         }
       }
+      
       
       // .then(async (myDocs: any) => {
       //   if (myDocs && myDocs.length) {
@@ -344,7 +369,7 @@ export class UtilsService {
       //   }
       // });
 
-      // Se for MyDocuments ou MyFavorites já deve estar na espera do download
+      // Prepare for download
       if (doc.DownloadStatus === '' && (whereFrom === 'myDocuments' || whereFrom === 'myFavorites')) {
         doc.DownloadStatus = 'Waiting';
       }
@@ -769,16 +794,17 @@ export class UtilsService {
     await this.apiService.logDocumentOpen(doc, userID);
   }
 
-  // TODO: Must check if the file exists before trying to remove it
   async removeLocalFile(doc: any): Promise<any> {
     try {
       const directory = this.platform.is('ios') ? Directory.Documents : Directory.Data;
-
       await Filesystem.deleteFile({ path: doc.DocumentVersionFileName, directory });
-
       console.log('removeLocalFile success', doc.DocumentVersionFileName);
       return { success: true };
-    } catch (error) {
+    } catch (error: any) {
+      if (error?.code === 'OS-PLUG-FILE-0008') {
+        console.log('removeLocalFile: file did not exist', doc.DocumentVersionFileName);
+        return { success: true, skipped: true };
+      }
       console.log('removeLocalFile error', error?.message);
       return false;
     }

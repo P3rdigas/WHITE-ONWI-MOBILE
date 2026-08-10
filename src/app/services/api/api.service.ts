@@ -81,7 +81,7 @@ export class ApiService {
   }
 
   async getDistributedDocuments(userID: string): Promise<any> {    
-    const url = encodeURI(`${environment.OdataEndpoint}WEBDocumentsDistribution?$filter=(isReceived eq true and wasUnderstood eq true) and UserID eq ${userID}`);
+    const url = encodeURI(`${environment.OdataEndpoint}WEBDocumentsDistribution?$filter=isReceived eq true and wasUnderstood eq true and UserID eq ${userID}`);
     console.log('getDistributedDocuments url', url);
 
     const options = await this.getBasicOptions();
@@ -160,9 +160,10 @@ export class ApiService {
 
   async postToApproveDocuments(distributionID: string, data: object): Promise<any> {
     const url = `${environment.OdataEndpoint}DocumentDistribution(${distributionID})`;
-    console.log('postToApproveDocuments url', url, JSON.stringify(data, null, 2));
+    console.log('postToApproveDocuments url', url);
 
     const options = await this.getBasicOptions();
+    options.headers = options.headers.set('Prefer', 'return=representation');
     return firstValueFrom(this._http.patch(url, data, options));
   }
 

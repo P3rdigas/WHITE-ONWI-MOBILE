@@ -105,7 +105,7 @@ export class SqliteService {
         'DocumentDesignation', 'DocumentReference', 'DocumentDescription', 'DocumentVersion',
         'DocumentVersionHash', 'DocumentVersionFileID', 'DocumentVersionIsLastVersion',
         'DocumentVersionExtension', 'DocumentVersionFileName', 'DocumentFolderID',
-        'DocumentURLUser', 'DocumentURLPassword', 'DocumentReceivedDate'
+        'DocumentURLUser', 'DocumentURLPassword', 'DocumentReceivedDate', 'DocumentDate'
       ],
       values: [
         doc.DocumentID, doc.DocumentFavorite, doc.DocumentFavoriteID, doc.DocumentType,
@@ -114,7 +114,7 @@ export class SqliteService {
         doc.DocumentVersion, doc.DocumentVersionHash, doc.DocumentVersionFileID,
         doc.DocumentVersionIsLastVersion ? 1 : 0, doc.DocumentVersionExtension,
         doc.DocumentVersionFileName, doc.DocumentFolderID, doc.DocumentURLUser,
-        doc.DocumentURLPassword, doc.ReceivedDate
+        doc.DocumentURLPassword, doc.ReceivedDate, doc.Date
       ]
     }));
   }
@@ -142,7 +142,7 @@ export class SqliteService {
   }
 
   async updateLastDocsDistributedList(documents: any[]): Promise<void> {
-    return this.upsertDocumentList('lastDocsDistributed', 'DocumentID', documents, (doc) => ({
+    return this.upsertDocumentList('lastDocsDistributed', 'DocumentVersionID', documents, (doc) => ({
       columns: [
         'DistributionID', 'DocumentID', 'DocumentFavorite', 'DocumentFavoriteID',
         'DocumentType', 'DownloadStatus', 'DocumentVersionID', 'DocumentVersionIcon',
@@ -228,7 +228,7 @@ export class SqliteService {
   async deleteLastDocDistributed(documentID: string): Promise<void> {
     const db = this.getDbOrThrow();
 
-    await db.run('DELETE FROM lastDocsDistributed WHERE DocumentID = ?', [documentID]);
+    await db.run('DELETE FROM lastDocsDistributed WHERE DocumentVersionID = ?', [documentID]);
   }
 
   async updateDownloadStatus(DocumentID: any, status: any): Promise<void> {
@@ -462,7 +462,8 @@ export class SqliteService {
         DocumentFolderID TEXT DEFAULT NULL,
         DocumentURLUser TEXT DEFAULT NULL,
         DocumentURLPassword TEXT DEFAULT NULL,
-        DocumentReceivedDate TEXT DEFAULT NULL
+        DocumentReceivedDate TEXT DEFAULT NULL,
+        DocumentDate TEXT DEFAULT NULL
       );
 
       CREATE TABLE IF NOT EXISTS myFavorites (
@@ -534,7 +535,7 @@ export class SqliteService {
 
   private async upsertDocumentList(
     tableName: string,
-    lookupKey: string = 'DocumentID',
+    lookupKey: string,
     documents: any[],
     buildValues: (doc: any) => { columns: string[]; values: any[] }
   ): Promise<void> {
@@ -548,7 +549,7 @@ export class SqliteService {
       for (const doc of documents) {
         const existing = await db.query(
           `SELECT id FROM ${tableName} WHERE ${lookupKey} = ?`,
-          [doc[lookupKey] ?? doc.DocumentID]
+          [doc[lookupKey]]
         );
 
         const { columns, values } = buildValues(doc);

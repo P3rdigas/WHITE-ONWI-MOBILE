@@ -44,20 +44,35 @@ export class ModalApprovalComponent implements OnInit {
       Comments: this.data.Comments,
     };
 
-    // TODO: Deploy the API
     this.apiService.postToApproveDocuments(data.DistributionID, obj)
     .then(async (response: any) => {
       console.log('postToApproveDocuments', response);
 
       if (response?.isReceived && response?.wasUnderstood) {
-        const prepared = await this.utilsService.prepareDocumentsNew([response], 'myDocuments');
-        if (prepared?.length) {
-          await this.sqliteService.updateMyDocumentsList(prepared);
+        const prepared = await this.utilsService.prepareDocumentsNew([response], 'modalApproval');
+
+        if (prepared && prepared.length) {
+          const prepDoc = prepared[0];
+
+          // Update my documents
+          const doc = await this.sqliteService.getMyDocuments(prepDoc.DocumentID);
+          if (doc && doc.length) {
+            const oldDoc = doc[0];
+
+            const pDate = new Date(prepDoc.Date);
+            const dDate = new Date(oldDoc.DocumentDate);
+
+            if (prepDoc.DocumentVersionID !== oldDoc.DocumentVersionID && pDate.getTime() > dDate.getTime()) {
+              console.log('update with updateMyDocumentsList method');
+              await this.sqliteService.updateMyDocumentsList([prepDoc]);
+              await this.utilsService.removeLocalFile(oldDoc);
+            }
+          }
+
+          // TODO: update aos favpritos
+
+          await this.sqliteService.deleteLastDocDistributed(prepDoc.DocumentVersionID);
         }
-
-        // TODO: Verify if it needs to update the myFavorites list too
-
-        await this.sqliteService.deleteLastDocDistributed(response.DocumentID);
       }
 
       loading.dismiss();
