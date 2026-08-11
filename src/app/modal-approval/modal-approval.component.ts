@@ -3,6 +3,7 @@ import { ModalController, NavParams } from '@ionic/angular';
 import { ApiService } from '../services/api/api.service';
 import { UtilsService } from '../services/utils/utils.service';
 import { SqliteService } from '../services/sqlite/sqlite.service';
+import { JsonPipe } from '@angular/common';
 
 @Component({
   selector: 'app-modal-approval',
@@ -46,8 +47,6 @@ export class ModalApprovalComponent implements OnInit {
 
     this.apiService.postToApproveDocuments(data.DistributionID, obj)
     .then(async (response: any) => {
-      console.log('postToApproveDocuments', response);
-
       if (response?.isReceived && response?.wasUnderstood) {
         const prepared = await this.utilsService.prepareDocumentsNew([response], 'modalApproval');
 
@@ -63,14 +62,22 @@ export class ModalApprovalComponent implements OnInit {
             const dDate = new Date(oldDoc.DocumentDate);
 
             if (prepDoc.DocumentVersionID !== oldDoc.DocumentVersionID && pDate.getTime() > dDate.getTime()) {
-              console.log('update with updateMyDocumentsList method');
               await this.sqliteService.updateMyDocumentsList([prepDoc]);
               await this.utilsService.removeLocalFile(oldDoc);
-            }
+            }            
           }
 
-          // TODO: update aos favpritos
+          // Update my favorites
+          const favDoc = await this.sqliteService.getMyFavorites(prepDoc.DocumentID);
+          if (favDoc && favDoc.length) {
+            const oldFavDoc = doc[0];
 
+            if (prepDoc.DocumentVersionID === oldFavDoc.DocumentVersionID) {
+              await this.sqliteService.updateMyFavoritesList([prepDoc]);
+            }            
+          }
+
+          // Update last docs
           await this.sqliteService.deleteLastDocDistributed(prepDoc.DocumentVersionID);
         }
       }

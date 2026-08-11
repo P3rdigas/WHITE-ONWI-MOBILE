@@ -331,7 +331,6 @@ export class UtilsService {
         doc.DocumentFavoriteID = doc.ID;
       }
 
-      // TODO:
       // Check if the document is in myDocument
       if (whereFrom === 'myDocuments') {
         const myDocs = await this.sqlite.getMyDocuments(doc.DocumentID);
@@ -350,24 +349,6 @@ export class UtilsService {
           }
         }
       }
-      
-      
-      // .then(async (myDocs: any) => {
-      //   if (myDocs && myDocs.length) {
-      //     for (const myDoc of myDocs) {
-      //       if (doc.DocumentVersionFileID === myDoc.DocumentVersionFileID) {
-      //         doc.DownloadStatus = myDoc.DownloadStatus;
-
-      //         // Check if HASH has changed
-      //         if (doc.DocumentVersionHash !== myDoc.DocumentVersionHash) {
-      //           doc.DownloadStatus = 'Waiting';
-      //           // Removes old document
-      //           await this.removeLocalFile(doc);
-      //         }
-      //       }
-      //     }
-      //   }
-      // });
 
       // Prepare for download
       if (doc.DownloadStatus === '' && (whereFrom === 'myDocuments' || whereFrom === 'myFavorites')) {
@@ -538,10 +519,11 @@ export class UtilsService {
 
     try {
       const response = await this.apiService.getFavoritesDocuments(user.ID);
+      const values = response?.value ?? [];
       let documents = [];
 
-      if (response?.length) {
-        const prepared = await this.prepareDocumentsNew(response, 'myFavorites');
+      if (values.length) {
+        const prepared = await this.prepareDocumentsNew(values, 'myFavorites');
         documents = prepared?.length ? prepared : [];
       }
 

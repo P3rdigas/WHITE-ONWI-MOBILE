@@ -155,21 +155,4 @@ export class LastDocsPage extends BaseDocumentPage implements OnInit {
     // }
     this.refresh(false);
   }
-
-  private async syncNewFavorites(docs: any[]): Promise<any[]> {
-    console.log("Sync new favorites.....");
-    for (const doc of docs) {
-      const favorites = await this.sqlite.getMyFavorites(doc.DocumentID) ?? [];
-
-      let isFav = favorites.some((fav: any) => fav.DocumentVersionID === doc.DocumentVersionID);
-
-      if (favorites.length > 0 && !isFav) {
-        await this.utilsService.addFavorite(doc, this.user);
-      }
-    }
-
-    await this.utilsService.backgroundUpdateFavorites();
-
-    return docs;
-  }
 }
