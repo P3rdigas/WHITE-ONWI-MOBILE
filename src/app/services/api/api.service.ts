@@ -56,11 +56,20 @@ export class ApiService {
     return firstValueFrom(this._http.get(url, options));
   }
 
-  requestPasswordReset(data: object): Promise<any> {
-    const url = encodeURI('http://192.168.1.72/api/Password/RequestReset');
+  async requestPasswordReset(data: object): Promise<any> {
+    const url = encodeURI(`https://api.flywhite.com/api/Password/RequestReset`);
     console.log('requestPasswordReset url', url);
 
-    return firstValueFrom(this._http.post(url, data));
+    const options = await this.getBasicOptions();
+    return firstValueFrom(this._http.post(url, data, options));
+  }
+
+  async confirmPasswordReset(data: object): Promise<any> {
+    const url = encodeURI(`https://api.flywhite.com/api/Password/ConfirmReset`);
+    console.log('confirmPasswordReset url', url);
+
+    const options = await this.getBasicOptions();
+    return firstValueFrom(this._http.post(url, data, options));
   }
 
   // Get the folders by alphabetic order

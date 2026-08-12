@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { App } from '@capacitor/app';
 
 import { AlertController, NavController, Platform } from '@ionic/angular';
 import { Router } from '@angular/router';
@@ -43,6 +44,8 @@ export class AppComponent implements OnInit {
 
   async initializeApp() {
     await this.platform.ready();
+
+    await this.setupDeepLinks();
 
     await this.bootstrapOdataCredentials();
 
@@ -113,6 +116,55 @@ export class AppComponent implements OnInit {
         environment.OdataUser,
         environment.OdataPassword
       );
+    }
+  }
+
+  private async setupDeepLinks() {
+    // App already running / brought to foreground
+    App.addListener('appUrlOpen', async (event) => {
+      console.log('App URL opened:', event.url);
+      await this.handleDeepLink(event.url);
+    });
+
+    // App was completely closed and launched by the link
+    const launchUrl = await App.getLaunchUrl();
+
+    if (launchUrl?.url) {
+      console.log('App launched with URL:', launchUrl.url);
+      await this.handleDeepLink(launchUrl.url);
+    }
+  }
+
+  private async handleDeepLink(urlString: string) {
+    try {
+      const url = new URL(urlString);
+
+      console.log('Deep link URL:', url.toString());
+      console.log('Hostname:', url.hostname);
+      console.log('Path:', url.pathname);
+      console.log('Token:', url.searchParams.get('token'));
+
+      if (url.hostname !== 'api.flywhite.com') {
+        return;
+      }
+
+      if (url.pathname !== '/reset-password') {
+        return;
+      }
+
+      const token = url.searchParams.get('token');
+
+      if (!token) {
+        console.warn('Reset password link has no token');
+        return;
+      }
+
+      await this.router.navigate(['/reset-password'], {
+        queryParams: { token: token }
+      });
+
+    } catch (error) {
+      console.error('Error processing app URL:', error);
     }
   }
 

@@ -81,7 +81,6 @@ export class MyFavoritesPage extends BaseDocumentPage implements OnInit {
     });
   }
 
-  // TODO: Accepting files must triggers an update of the favorites list probably
   async getFavorites() {
     this.sqlite.getMyFavorites().then((documents: any) => {
       console.log('getFavorites RESULT', JSON.stringify(documents, null, 2));

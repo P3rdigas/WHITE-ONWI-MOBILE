@@ -318,6 +318,7 @@ export class LoginPage implements OnInit {
       })
       .catch(async (error) => {
         loading.dismiss();
+        console.log('The error: ', error.message)
         const alert = await this.utilsService.createAlert('Something went wrong', 'Please, try again later.');
         alert.present();
       });

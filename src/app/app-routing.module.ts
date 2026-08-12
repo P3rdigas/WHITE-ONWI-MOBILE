@@ -36,7 +36,7 @@ const routes: Routes = [
     loadChildren: () => import('./pdf-viewer/pdf-viewer.module').then( m => m.PdfViewerPageModule)
   },
   {
-    path: 'reset-password/:token',
+    path: 'reset-password',
     loadChildren: () => import('./reset-password/reset-password.module').then( m => m.ResetPasswordPageModule)
   }
 
