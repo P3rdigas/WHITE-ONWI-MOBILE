@@ -40,72 +40,150 @@
 
   ion-toolbar {
     --background: white;
+    --border-width: 0px;
     padding-top: 0 !important;
-  }
 
-  .header-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 2vw;
-    padding: 2vw 2vw;
-
-    .logo-wrap {
-      width: 45%;
-    }
-
-    .user-info {
-      flex: 1;
+    .header-row {
       display: flex;
-      flex-direction: column;
-      align-items: flex-end;
-      gap: 1vw;
+      align-items: center;
+      justify-content: space-between;
+      gap: 2vw;
+      padding: 2vw 2vw;
 
-      .username {
-        margin: 0;
-        font-weight: 700;
-        font-size: 15px;
-        color: black;
+      .logo-wrap {
+        width: 45%;
       }
 
-      .logout {
+      .user-info {
+        flex: 1;
         display: flex;
-        align-items: center;
+        flex-direction: column;
+        align-items: flex-end;
         gap: 1vw;
-        margin: 0;
-        font-size: 13px;
-        font-weight: 400;
-        color: black;
 
-        ion-icon {
-          font-size: 17.5px;
-          color: var(--white-dark-blue);
+        .username {
+          margin: 0;
+          font-weight: 700;
+          font-size: 15px;
+          color: black;
+        }
+
+        .logout {
+          display: flex;
+          align-items: center;
+          gap: 1vw;
+          margin: 0;
+          font-size: 13px;
+          font-weight: 400;
+          color: black;
+
+          ion-icon {
+            font-size: 17.5px;
+            color: var(--white-dark-blue);
+          }
+        }
+      }
+
+      .profile-avatar {
+        width: 12.5vw;
+        height: 12.5vw;
+        flex-shrink: 0;
+        box-shadow:
+          2px 3px 6px rgba(0, 0, 0, 0.15),
+          3px 5px 12px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+
+        img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          display: block;
         }
       }
     }
 
-    .profile-avatar {
-      width: 12.5vw;
-      height: 12.5vw;
-      flex-shrink: 0;
-      box-shadow:
-        2px 3px 6px rgba(0, 0, 0, 0.15),
-        3px 5px 12px rgba(0, 0, 0, 0.1);
-      overflow: hidden;
-
-      img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        display: block;
-      }
+    .header-divider {
+      width: 100%;
+      height: 6px;
+      display: block;
+      object-fit: cover;
     }
   }
+}
 
-  .header-divider {
+ion-content {
+  --background: white;
+
+  .content-toolbar {
     width: 100%;
-    height: 6px;
-    display: block;
-    object-fit: cover;
+    height: 2.5rem;
+    align-items: center;
+    padding: 0 3vw;
+    margin: 0.5vh 0;
+
+    .toolbar-search {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      height: 100%;
+      padding: 0;
+      margin: 0;
+
+      overflow: hidden;
+      border-radius: 14px;
+
+      ion-searchbar {
+        --background: rgb(230, 230, 230);
+        --color: black;
+        --placeholder-color: var(--white-gray);
+        --border-radius: 14px;
+
+        display: flex;
+        align-items: stretch;
+        width: 100%;
+        height: 100%;
+        max-height: 100%;
+        padding: 0;
+        margin: 0;
+
+        ::ng-deep .searchbar-input-container {
+          height: 100%;
+          max-height: 100%;
+          min-height: 0 !important;
+        }
+
+        ::ng-deep .searchbar-input {
+          height: 100% !important;
+          min-height: 0 !important;
+          box-sizing: border-box;
+          padding-top: 0 !important;
+          padding-bottom: 0 !important;
+        }
+      }
+    }
+
+    .toolbar-refresh {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      height: 100%;
+      padding: 0;
+      
+      .refresh-button {
+        --background: var(--white-dark-blue);
+        --background-activated: var(--white-light-blue);
+        --color: white;
+
+        height: 100%;
+        aspect-ratio: 1;
+        padding: 0;
+        margin: 0;
+
+        ion-icon {
+          font-size: 20px;
+        }
+      }
+    }
   }
 }

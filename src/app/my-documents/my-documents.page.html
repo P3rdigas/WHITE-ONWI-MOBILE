@@ -24,17 +24,16 @@
 
 <ion-content [scrollEvents]="true" (ionScroll)="logScrolling($event)">
   <ion-grid>
-    <ion-row>
-      <ion-col size="10">
-        <ion-searchbar mode="ios" placeholder="Search documents" [(ngModel)]="search" (ionChange)="updateFilters()"></ion-searchbar>
+    <ion-row class="content-toolbar">
+      <ion-col size="10" class="toolbar-search">
+        <ion-searchbar mode="ios" placeholder="Search documents" [(ngModel)]="search" (ionChange)="updateFilters()" show-clear-button="always"></ion-searchbar>
       </ion-col>
 
-      <ion-col size="2" class="ion-padding-horizontal ion-text-right">
-        <ion-button mode="ios" size="small" expand="block" (click)="refresh(true)">
-          <ion-icon name="refresh-outline"></ion-icon>
+      <ion-col size="2" class="toolbar-refresh">
+        <ion-button mode="ios" class="refresh-button" (click)="refresh(true)">
+          <ion-icon slot="icon-only" name="refresh-outline"></ion-icon>
         </ion-button>
       </ion-col>
-      
     </ion-row>
 
     <!-- View mode toggle -->

@@ -1,5 +1,6 @@
 /// <reference types="@capawesome/capacitor-android-edge-to-edge-support" />
 import type { CapacitorConfig } from '@capacitor/cli';
+import { KeyboardResize } from '@capacitor/keyboard';
 
 const config: CapacitorConfig = {
   appId: 'com.flywhite.onwi',
@@ -7,8 +8,8 @@ const config: CapacitorConfig = {
   webDir: 'www',
   plugins: {
     EdgeToEdge: {
-      backgroundColor: '#00000000'
-    }
+      backgroundColor: '#00000000',
+    },
   },
 };
 
