@@ -38,25 +38,16 @@
 
     <!-- View mode toggle -->
     <ion-row>
-      <ion-col size="12" class="ion-text-right ion-padding-horizontal">
-        <ion-button fill="clear" size="small" (click)="toggleViewMode()">
+      <ion-col size="12" class="ion-padding-horizontal view-controls-row">
+        <ion-button mode='ios' fill="clear" class="control-btn" (click)="toggleViewMode()">
           <ion-icon slot="icon-only" [name]="viewMode === 'list' ? 'folder-outline' : 'list-outline'"></ion-icon>
+        </ion-button>
+
+        <ion-button mode='ios' fill="clear" class="control-btn" (click)="toggleSortMode()">
+          <ion-icon slot="icon-only" [src]="sortIcon"></ion-icon>
         </ion-button>
       </ion-col>
     </ion-row>
-
-    <!-- Toggle alphabetic order -->
-    <!-- <ion-row>
-      <ion-col size="12" class="ion-text-right ion-padding-horizontal">
-        <ion-button fill="clear" size="small" (click)="toggleAlphabeticOrder()">
-          <ion-icon slot="icon-only" name="text-outline"></ion-icon>
-        </ion-button>
-      </ion-col>
-    </ion-row> -->
-
-    <ion-button (click)="toggleSortMode()">
-      <ion-icon slot="icon-only" [name]="sortIcon"></ion-icon>
-    </ion-button>
 
     <ion-row>
       <ion-col size="12">

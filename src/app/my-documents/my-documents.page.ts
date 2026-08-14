@@ -76,9 +76,9 @@ export class MyDocumentsPage extends BaseDocumentPage implements OnInit {
   }
 
   get sortIcon(): string {
-    if (this.sortMode === 'newest') return 'arrow-down-outline';
-    if (this.sortMode === 'oldest') return 'arrow-up-outline';
-    return 'text-outline';
+    if (this.sortMode === 'newest') return 'assets/icons/newest.svg';
+    if (this.sortMode === 'oldest') return 'assets/icons/oldest.svg';
+    return 'assets/icons/alphabetic.svg';
   }
 
   toggleFolder(folder: any) {

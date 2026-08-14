@@ -186,4 +186,25 @@ ion-content {
       }
     }
   }
+
+  .view-controls-row {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    padding: 0 3vw;
+  }
+
+  .control-btn {
+    --background: var(--white-gray);
+    --border-radius: 14px;
+    height: 2.5rem;
+    aspect-ratio: 1;
+    margin: 0;
+
+    ion-icon {
+      font-size: 20px;
+      color: white;
+    }
+  }
 }
