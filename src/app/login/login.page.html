@@ -1,105 +1,104 @@
 <ion-content class="login-content">
   <div class="login-wrapper">
 
-    <div class="logo-container">
-      <div class="logo-circle">
-        <ion-img src="assets/images/logo-onwi.png" class="logo-img"></ion-img>
+    <div class="logo-section">
+      <div class="logo-container">
+        <ion-img src="assets/images/white_onwi_logo.png" class="logo-img"></ion-img>
       </div>
     </div>
 
-    <div class="title-container" #titleContainer  [class.reset-position]="isResetMode">
-      <!-- <h2 class="company-name">{{ isResetMode ? 'ONWI RESET PASSWORD' : 'ONWI LOGIN' }}</h2> -->
-        <h2 *ngIf="!isResetMode" class="title" animate.enter="title-enter" animate.leave="title-leave">
-          ONWI LOGIN
-        </h2>
-        <h2 *ngIf="isResetMode" class="title" animate.enter="title-enter" animate.leave="title-leave">
-          ONWI RESET PASSWORD
-        </h2>
-    </div>
+    <div class="content-section">
+      <div class="title-container" #titleContainer  [class.reset-position]="isResetMode">
+          <h2 *ngIf="!isResetMode" class="title" animate.enter="title-enter" animate.leave="title-leave">
+            LOGIN
+          </h2>
+          <h2 *ngIf="isResetMode" class="title" animate.enter="title-enter" animate.leave="title-leave">
+            RESET PASSWORD
+          </h2>
+      </div>
 
-    <div class="login-card-shadow">
-      <div class="login-card" #loginCard>
-        <form [formGroup]="loginForm" (ngSubmit)="isResetMode ? requestReset() : getUser()">
+      <div class="login-card-shadow">
+        <div class="login-card" #loginCard>
+          <form [formGroup]="loginForm" (ngSubmit)="isResetMode ? requestReset() : getUser()">
 
-          <div class="field-group">
-            <ion-label class="field-label">Email</ion-label>
-            <ion-item lines="none" class="input-item">
-              <ion-icon slot="start" name="mail-outline"></ion-icon>
-              <ion-input
-                enterkeyhint="next"
-                type="email"
-                inputmode="email"
-                formControlName="email"
-                id="email"
-                required="true">
-              </ion-input>
-            </ion-item>
-          </div>
+            <div class="field-group">
+              <ion-label class="field-label">Email</ion-label>
+              <ion-item lines="none" class="input-item">
+                <ion-icon slot="start" name="mail-outline"></ion-icon>
+                <ion-input
+                  enterkeyhint="next"
+                  type="email"
+                  inputmode="email"
+                  formControlName="email"
+                  id="email"
+                  required="true">
+                </ion-input>
+              </ion-item>
+            </div>
 
-          <div class="field-group" *ngIf="!isResetMode">
-            <ion-label class="field-label">Password</ion-label>
-            <ion-item lines="none" class="input-item">
-              <ion-icon slot="start" name="lock-closed-outline"></ion-icon>
-              <ion-input
-                enterkeyhint="enter"
-                [type]="showPassword ? 'text' : 'password'"
-                inputmode="text"
-                formControlName="password"
-                id="password"
-                required="true">
-              </ion-input>
-              <ion-icon
-                slot="end"
-                [name]="showPassword ? 'eye-outline' : 'eye-off-outline'"
-                (click)="showPassword = !showPassword">
-              </ion-icon>
-            </ion-item>
-          </div>
+            <div class="field-group" *ngIf="!isResetMode">
+              <ion-label class="field-label">Password</ion-label>
+              <ion-item lines="none" class="input-item">
+                <ion-icon slot="start" name="lock-closed-outline"></ion-icon>
+                <ion-input
+                  enterkeyhint="enter"
+                  [type]="showPassword ? 'text' : 'password'"
+                  inputmode="text"
+                  formControlName="password"
+                  id="password"
+                  required="true">
+                </ion-input>
+                <ion-icon
+                  slot="end"
+                  [name]="showPassword ? 'eye-outline' : 'eye-off-outline'"
+                  (click)="showPassword = !showPassword">
+                </ion-icon>
+              </ion-item>
+            </div>
 
-          <div class="options-row" *ngIf="!isResetMode">
-            <ion-item lines="none" class="remember-item">
-              <ion-toggle formControlName="remember" mode="ios" labelPlacement="end">
-                Remember login
-              </ion-toggle>
-            </ion-item>
+            <div class="options-row" *ngIf="!isResetMode">
+              <ion-item lines="none" class="remember-item">
+                <ion-toggle formControlName="remember" mode="ios" labelPlacement="end">
+                  Remember login
+                </ion-toggle>
+              </ion-item>
+
+              <ion-button
+                mode="ios"
+                fill="clear"
+                size="small"
+                class="forgot-link"
+                type="button"
+                (click)="toggleResetMode()">
+                Forgot password?
+              </ion-button>
+            </div>
 
             <ion-button
               mode="ios"
+              expand="block"
+              class="login-button"
+              type="submit">
+              {{ isResetMode ? 'Send Reset Link' : 'Login' }}
+            </ion-button>
+
+            <ion-button
+              *ngIf="isResetMode"
+              mode="ios"
               fill="clear"
               size="small"
-              class="forgot-link"
+              class="back-link"
               type="button"
               (click)="toggleResetMode()">
-              Forgot password?
+              Back to Login
             </ion-button>
-          </div>
 
-          <ion-button
-            mode="ios"
-            expand="block"
-            class="login-button"
-            type="submit">
-            {{ isResetMode ? 'Send Reset Link' : 'Login' }}
-          </ion-button>
-
-          <ion-button
-            *ngIf="isResetMode"
-            mode="ios"
-            fill="clear"
-            size="small"
-            class="back-link"
-            type="button"
-            (click)="toggleResetMode()">
-            Back to Login
-          </ion-button>
-
-          <p *ngIf="resetMessage" class="reset-message ion-text-center">
-            {{ resetMessage }}
-          </p>
-
-        </form>
+            <p *ngIf="resetMessage" class="reset-message ion-text-center">
+              {{ resetMessage }}
+            </p>
+          </form>
+        </div>
       </div>
     </div>
-
   </div>
 </ion-content>
