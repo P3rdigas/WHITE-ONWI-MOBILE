@@ -73,7 +73,11 @@
 
   <!-- Folder tree view -->
   <div>
-    <ion-text color="dark" *ngIf="!folders?.length && !fullDocuments?.length">
+    <ion-text color="dark" *ngIf="isUpdating">
+      <p class="ion-padding">The documents are being updated. Take a break or go to other pages!</p>
+    </ion-text>
+
+    <ion-text color="dark" *ngIf="!isUpdating && !folders?.length && !fullDocuments?.length">
       <p class="ion-padding">No files found.</p>
     </ion-text>
 

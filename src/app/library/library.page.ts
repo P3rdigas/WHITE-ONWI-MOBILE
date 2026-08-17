@@ -5,6 +5,7 @@ import { ApiService } from '../services/api/api.service';
 import { Events } from '../services/events/events';
 import { SqliteService } from '../services/sqlite/sqlite.service';
 import { BaseDocumentPage } from '../base-document.page';
+import { LibrarySyncService } from '../services/library-sync/library-sync.service';
 
 @Component({
   selector: 'app-library',
@@ -19,6 +20,7 @@ export class LibraryPage extends BaseDocumentPage implements OnInit {
   public folders: any[] = [];
   public filteredFolders: any[] = [];
   public search = '';
+  protected isUpdating: boolean = false;
 
   constructor(
     utilsService: UtilsService,
@@ -26,6 +28,7 @@ export class LibraryPage extends BaseDocumentPage implements OnInit {
     private events: Events,
     private sqlite: SqliteService,
     private navCtrl: NavController,
+    private librarySyncService: LibrarySyncService
   ) {
     super(utilsService);
     this.user = localStorage.getItem('onwi.User');
@@ -37,15 +40,25 @@ export class LibraryPage extends BaseDocumentPage implements OnInit {
     if (!user) return;
     this.user = user;
 
+    this.librarySyncService.isUpdating$.subscribe(status => {
+      const wasUpdating = this.isUpdating;
+      this.isUpdating = status;
+
+      if (wasUpdating && !status) {
+        this.loadFolders();
+        this.getDocuments();
+      }
+    });
+
     // Filter folders
     this.events.subscribe('updateFolders', () => {
       this.loadFolders();
-    })
+    });
     this.events.subscribe('changeNetworkStatus', (status) => {
       // console.log('events.subscribe changeNetworkStatus', status);
       this.networkStatus = status;
     });
-    this.events.subscribe('updateLibrary', (folders) => {
+    this.events.subscribe('updateLibrary', async (folders) => {
       console.log('events.subscribe updateLibrary', folders);
       this.getDocuments();
     });
@@ -142,12 +155,15 @@ export class LibraryPage extends BaseDocumentPage implements OnInit {
   }
 
   ionViewWillEnter() {
-    this.refresh(false);
-
     if (!this.user.isViewer) {
       this.navCtrl.navigateRoot(['/my-documents']);
+      return;
     }
-  }
+
+    if (!this.isUpdating) {
+      this.refresh(false);
+    }
+}
 
   private async loadFolders() {
     this.folders = await this.utilsService.prepareMenuFolders(null) || [];

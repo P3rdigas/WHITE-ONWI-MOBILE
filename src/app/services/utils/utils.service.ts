@@ -14,6 +14,7 @@ import { LocalNotifications } from '@capacitor/local-notifications';
 import { LoadingProgressComponent } from 'src/app/components/loading-progress/loading-progress.component';
 import { LoadingProgressService } from '../loading-progress/loading-progress.service';
 import { ResetPasswordPageModule } from 'src/app/reset-password/reset-password.module';
+import { LibrarySyncService } from '../library-sync/library-sync.service';
 
 @Injectable({
   providedIn: 'root'
@@ -34,6 +35,7 @@ export class UtilsService {
     private events: Events,
     private navCtrl: NavController,
     private router: Router,
+    private librarySyncService: LibrarySyncService
     // private file: File,
     // private iab: InAppBrowser,
     // private badge: Badge,
@@ -457,6 +459,9 @@ export class UtilsService {
       return;
     }
 
+    this.librarySyncService.setUpdating(true);
+    //this.events.publish('startLibraryUpdate', null);
+
     try {
       const response = await this.apiService.getDocuments();
       const values = response?.value ?? [];
@@ -472,6 +477,8 @@ export class UtilsService {
     } catch(error) {
       console.log(error);
       this.events.publish('updateLibrary', null);
+    } finally {
+      this.librarySyncService.setUpdating(false);
     }
     console.log('~~~~~~~~~~~~~~~~ backgroundUpdateLibrary END ~~~~~~~~~~~~~~~~');
   }
@@ -604,7 +611,7 @@ export class UtilsService {
     await this.backgroundUpdateFavorites();
 
     this.loadingProgress.nextStep('Syncing library...');
-    await this.backgroundUpdateLibrary();
+    this.backgroundUpdateLibrary();
 
     this.loadingProgress.nextStep('Syncing my documents...');
     await this.backgroundUpdateMyDocuments();
