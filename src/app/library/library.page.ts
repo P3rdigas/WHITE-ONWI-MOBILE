@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { UtilsService } from '../services/utils/utils.service';
-import { NavController } from '@ionic/angular';
+import { AlertController, NavController } from '@ionic/angular';
 import { ApiService } from '../services/api/api.service';
 import { Events } from '../services/events/events';
 import { SqliteService } from '../services/sqlite/sqlite.service';
@@ -28,7 +28,8 @@ export class LibraryPage extends BaseDocumentPage implements OnInit {
     private events: Events,
     private sqlite: SqliteService,
     private navCtrl: NavController,
-    private librarySyncService: LibrarySyncService
+    private librarySyncService: LibrarySyncService,
+    private alertController: AlertController
   ) {
     super(utilsService);
     this.user = localStorage.getItem('onwi.User');
@@ -82,6 +83,38 @@ export class LibraryPage extends BaseDocumentPage implements OnInit {
     const direct = this.utilsService.filterFolder(this.fullDocuments, folder).length;
     const children = folder.children?.reduce((sum: number, child: any) => sum + this.getTotalDocumentsOfFolder(child), 0) ?? 0;
     return direct + children;
+  }
+
+  getDocCountLabel(folder: any): string {
+    const count = this.getTotalDocumentsOfFolder(folder);
+    return `${count} ${count === 1 ? 'doc' : 'docs'}`;
+  }
+
+  splitVersion(version: string): { top: string; bottom: string } {
+    if (!version) return { top: '', bottom: '' };
+    const match = version.match(/\sTR\./);
+    if (!match || match.index === undefined) {
+      return { top: version.trim(), bottom: '' };
+    }
+    const top = version.substring(0, match.index).trim();
+    const bottom = version.substring(match.index).trim();
+    return { top, bottom };
+  }
+
+  async openDocInfo(doc: any, event: Event) {
+    event.stopPropagation();
+
+    const alert = await this.alertController.create({
+      header: `${doc.DocumentTag} ${doc.DocumentDesignation}`,
+      cssClass: 'doc-info-alert',
+      message: `
+        <div class="doc-info-row"><span>Latest version: </span><b>${doc.DocumentVersionIsLastVersion ? 'Yes' : 'No'}</b></div>
+        <div class="doc-info-row"><span>Download status: </span><b>${doc.DownloadStatus ? doc.DownloadStatus : '-'}</b></div>
+        <div class="doc-info-row"><span>Distributed on: </span><b>${this.utilsService.formatDate(doc.DocumentDate)}</b></div>
+      `,
+      buttons: ['Close']
+    });
+    await alert.present();
   }
 
   exit() {

@@ -276,30 +276,26 @@ export class UtilsService {
       // Version
       doc.DocumentVersion = '';
       if (doc.DocumentTypeIsEditionControl) {
-        doc.DocumentVersion = '(Ed.' + doc.DocumentVersionEdition + ' Rev.' + doc.DocumentVersionRevision;
+        doc.DocumentVersion = 'Ed.' + doc.DocumentVersionEdition + ' Rev.' + doc.DocumentVersionRevision;
         if (doc.DocumentVersionTemporaryReview > 0) {
-          doc.DocumentVersion += ' TR.' + doc.DocumentVersionTemporaryReview + ' ' + doc.DocumentVersionTemporaryReviewDate + ')';
-        } else {
-          doc.DocumentVersion += ')';
+          doc.DocumentVersion += ' TR.' + doc.DocumentVersionTemporaryReview + ' ' + this.formatDate(doc.DocumentVersionTemporaryReviewDate);
         }
       }
 
       if (doc.DocumentTypeIsVersionControl) {
-        doc.DocumentVersion = '(Ver.' + doc.DocumentVersionVersion;
+        doc.DocumentVersion = 'Ver.' + doc.DocumentVersionVersion;
         if (doc.DocumentVersionTemporaryReview > 0) {
-          doc.DocumentVersion += ' TR.' + doc.DocumentVersionTemporaryReview + ' ' + doc.DocumentVersionTemporaryReviewDate + ')';
-        } else {
-          doc.DocumentVersion += ')';
+          doc.DocumentVersion += ' TR.' + doc.DocumentVersionTemporaryReview + ' ' + this.formatDate(doc.DocumentVersionTemporaryReviewDate);
         }
       }
 
       if (doc.DocumentTypeIsVersionAlphaControl) {
-        doc.DocumentVersion = '(Ver.' + doc.DocumentVersionVersionAlpha + ')';
+        doc.DocumentVersion = 'Ver.' + doc.DocumentVersionVersionAlpha;
       }
 
       if (doc.DocumentTypeIsDateControl) {
-        doc.DocumentExpirationDate = (doc.DocumentExpirationDate).split('T');
-        doc.DocumentVersion = '(Valid until ' + doc.DocumentExpirationDate[0] + ')';
+        doc.DocumentExpirationDate = this.formatDate(doc.DocumentExpirationDate);
+        doc.DocumentVersion = 'Valid until ' + doc.DocumentExpirationDate;
       }
 
       doc.DocumentFavorite = false;
@@ -1068,6 +1064,23 @@ export class UtilsService {
         // this.navCtrl.navigateRoot('/subscription');
       }
     }
+  }
+
+  formatDate(isoString: string | null | undefined): string {
+    if (!isoString) {
+      return 'No date';
+    } 
+
+    const d = new Date(isoString);
+    if (isNaN(d.getTime())) {
+      return 'No date';
+    }
+
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+
+    return `${day}/${month}/${year}`;
   }
 
   private async applyFavorite(doc: any, status: boolean, id: string) {

@@ -15,3 +15,69 @@ ion-loading.loading .loading-wrapper {
   border-radius: 16px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
 }
+
+.doc-info-alert {
+  --backdrop-opacity: 0.6;
+
+  .alert-wrapper {
+    border-radius: 18px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  }
+
+  .alert-head {
+    padding-top: 20px;
+    padding-bottom: 8px;
+
+    .alert-title {
+      font-weight: 700;
+      font-size: 16px;
+      color: black;
+    }
+  }
+
+  .alert-message {
+    padding: 8px 20px 4px;
+    color: black;
+
+    .doc-info-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--white-gray);
+      font-size: 14px;
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      span {
+        color: var(--white-gray);
+        font-weight: 400;
+      }
+
+      b {
+        color: black;
+        font-weight: 700;
+        text-align: right;
+      }
+    }
+  }
+
+  .alert-button-group {
+    padding: 8px 12px 12px;
+  }
+
+  .alert-button {
+    color: white;
+    background: var(--white-dark-blue);
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 12px;
+    margin: 0;
+
+    .alert-button-inner {
+      justify-content: center;
+    }
+  }
+}

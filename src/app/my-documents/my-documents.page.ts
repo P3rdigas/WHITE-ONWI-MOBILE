@@ -6,6 +6,7 @@ import { SqliteService } from '../services/sqlite/sqlite.service';
 import { ActivatedRoute } from '@angular/router';
 import { BaseDocumentPage } from '../base-document.page';
 import { SortMode, ViewMode } from 'src/types/types';
+import { AlertController } from '@ionic/angular';
 
 @Component({
   selector: 'app-my-documents',
@@ -28,7 +29,8 @@ export class MyDocumentsPage extends BaseDocumentPage implements OnInit {
     private apiService: ApiService,
     private sqlite: SqliteService,
     private events: Events,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private alertController: AlertController
   ) {
     super(utilsService);
     this.user = localStorage.getItem('onwi.User');
@@ -93,6 +95,33 @@ export class MyDocumentsPage extends BaseDocumentPage implements OnInit {
   getDocCountLabel(folder: any): string {
     const count = this.getTotalDocumentsOfFolder(folder);
     return `${count} ${count === 1 ? 'doc' : 'docs'}`;
+  }
+
+  splitVersion(version: string): { top: string; bottom: string } {
+    if (!version) return { top: '', bottom: '' };
+    const match = version.match(/\sTR\./);
+    if (!match || match.index === undefined) {
+      return { top: version.trim(), bottom: '' };
+    }
+    const top = version.substring(0, match.index).trim();
+    const bottom = version.substring(match.index).trim();
+    return { top, bottom };
+  }
+
+  async openDocInfo(doc: any, event: Event) {
+    event.stopPropagation();
+
+    const alert = await this.alertController.create({
+      header: `${doc.DocumentTag} ${doc.DocumentDesignation}`,
+      cssClass: 'doc-info-alert',
+      message: `
+        <div class="doc-info-row"><span>Latest version: </span><b>${doc.DocumentVersionIsLastVersion ? 'Yes' : 'No'}</b></div>
+        <div class="doc-info-row"><span>Download status: </span><b>${doc.DownloadStatus ? doc.DownloadStatus : '-'}</b></div>
+        <div class="doc-info-row"><span>Distributed on: </span><b>${this.utilsService.formatDate(doc.DocumentDate)}</b></div>
+      `,
+      buttons: ['Close']
+    });
+    await alert.present();
   }
 
   exit() {
@@ -198,22 +227,18 @@ export class MyDocumentsPage extends BaseDocumentPage implements OnInit {
   private applySortAndFilter() {
     let sorted = [...this.fullDocuments];
 
-    for (const doc of this.fullDocuments) {
-      console.log("file:\n", JSON.stringify(doc, null, 2));
-    }
-
     if (this.sortMode === 'alphabetic') {
       sorted.sort((a: any, b: any) => this.utilsService.getDocSortKey(a).localeCompare(this.utilsService.getDocSortKey(b)));
     } else if (this.sortMode === 'newest') {
       sorted.sort((a: any, b: any) => {
-        const dateA = new Date(a.DocumentReceivedDate);
-        const dateB = new Date(b.DocumentReceivedDate);
+        const dateA = new Date(a.DocumentDate);
+        const dateB = new Date(b.DocumentDate);
         return dateB.getTime() - dateA.getTime();
       });
     } else {
       sorted.sort((a: any, b: any) => {
-        const dateA = new Date(a.DocumentReceivedDate);
-        const dateB = new Date(b.DocumentReceivedDate);
+        const dateA = new Date(a.DocumentDate);
+        const dateB = new Date(b.DocumentDate);
         return dateA.getTime() - dateB.getTime();
       });
     }

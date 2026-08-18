@@ -34,3 +34,172 @@ ion-header ion-toolbar #sair p {
   margin-top: 0px;
   margin-bottom: 2px;
 }
+
+.folder-mode-wrapper {
+    padding: 0 3vw;
+
+    .empty-state {
+      text-align: center;
+      color: var(--white-gray);
+      font-size: 14px;
+    }
+  }
+
+  .folder-card {
+    background: white;
+    border-radius: 16px;
+    margin-bottom: 5px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 2px 8px rgba(0, 0, 0, 0.04);
+    overflow: hidden;
+    transition: box-shadow 0.2s ease;
+
+    &.folder-open {
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.06);
+    }
+
+    .folder-header {
+      --background: transparent;
+      --min-height: 56px;
+      --padding-start: 12px;
+      --padding-end: 12px;
+
+      .folder-icon-wrap {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.15);
+        margin-inline-end: 12px;
+
+        ion-icon {
+          font-size: 20px;
+          color: var(--white-dark-blue);
+        }
+      }
+
+      .folder-name {
+        font-weight: 700;
+        font-size: 15px;
+        color: black;
+      }
+
+      .doc-count-badge {
+        --background: var(--white-gray);
+        --color: white;
+        font-weight: 500;
+        font-size: 11px;
+        border-radius: 10px;
+        padding: 4px 8px;
+        margin-inline-end: 8px;
+      }
+
+      .chevron-icon {
+        font-size: 18px;
+        color: var(--white-dark-blue);
+      }
+    }
+  }
+
+  .folder-children {
+    margin-bottom: 10px;
+  }
+
+  .doc-list {
+    background: transparent;
+
+    // .doc-item {
+    //   --background: #ffffff;
+    //   --min-height: 52px;
+    //   --padding-start: 12px;
+    //   --padding-end: 8px;
+    //   border-radius: 12px;
+    //   margin-bottom: 6px;
+    //   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+
+    //   .doc-thumb {
+    //     width: 32px;
+    //     height: 32px;
+    //     margin-inline-end: 10px;
+    //   }
+
+    //   .doc-label {
+    //     font-size: 13.5px;
+    //     color: #1c1c1e;
+
+    //     b {
+    //       color: var(--white-dark-blue);
+    //     }
+    //   }
+
+    //   .version-badge {
+    //     --background: var(--white-light-blue);
+    //     --color: var(--white-dark-blue);
+    //     font-size: 10.5px;
+    //     font-weight: 600;
+    //     border-radius: 8px;
+    //     padding: 3px 7px;
+    //     margin-inline-end: 6px;
+    //   }
+
+    //   .doc-action-icon {
+    //     font-size: 18px;
+    //     margin-inline-start: 4px;
+    //   }
+    // }
+    .doc-item {
+      --background: #ffffff;
+      --min-height: 52px;
+      --padding-start: 12px;
+      --padding-end: 8px;
+      border-radius: 12px;
+      margin-bottom: 6px;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+
+      .doc-thumb {
+        width: 32px;
+        height: 32px;
+        margin-inline-end: 10px;
+      }
+
+      .doc-label {
+        font-size: 13.5px;
+        color: black;
+      }
+
+      .version-badge {
+        --background: var(--white-gray);
+        --color: white;
+        border-radius: 8px;
+        padding: 3px 7px;
+        margin-inline-end: 8px;
+
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        justify-content: center;
+        text-align: left;
+
+        .version-line {
+          display: block;
+          font-size: 10px;
+          font-weight: 600;
+          white-space: nowrap;
+        }
+      }
+
+      .doc-action-icon {
+        font-size: 18px;
+      }
+
+      .favorite-icon {
+        margin-inline-end: 6px;
+      }
+
+      .info-icon {
+        color: var(--white-gray);
+        font-size: 20px;
+      }
+    }
+  }

@@ -27,7 +27,9 @@ import { LoadingProgressComponent } from './components/loading-progress/loading-
   declarations: [AppComponent, LoadingProgressComponent],
   imports: [
     BrowserModule,
-    IonicModule.forRoot(),
+    IonicModule.forRoot({
+      innerHTMLTemplatesEnabled: true
+    }),
     AppRoutingModule,
     ReactiveFormsModule,
     FormsModule,
