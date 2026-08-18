@@ -207,4 +207,40 @@ ion-content {
       color: white;
     }
   }
+
+  .app-segment {
+    --background: transparent;
+    background: rgb(230, 230, 230);
+    border-radius: 20px;
+    padding: 2px;
+
+    ion-segment-button {
+      --color: var(--white-gray);
+      --color-checked: var(--white-dark-blue);
+      --indicator-height: none;
+      --border-radius: 20px;
+      min-height: 40px;
+      text-transform: none;
+      font-weight: 700;
+      font-size: 13px;
+
+      &::part(indicator) {
+        border-radius: 20px;
+      }
+
+      &::part(native) {
+        border-radius: 20px;
+      }
+
+      &.segment-button-checked {
+        --background-hover: var(--white-light-blue);
+        --background-hover-opacity: 0.15;
+        --ripple-color: var(--white-light-blue);
+      }
+
+      ion-label {
+        margin: 0;
+      }
+    }
+  } 
 }
