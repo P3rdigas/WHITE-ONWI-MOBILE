@@ -163,10 +163,9 @@
   </ion-fab>
 </ion-content>
 
-<ion-footer color="medium" mode="md" id="footer-database">
-  <ion-toolbar>
-    <ion-title>
-      <span *ngIf="networkStatus === 'offline'">Offline</span>
-    </ion-title>
-  </ion-toolbar>
+<ion-footer color="small" mode="md" id="footer-database" class="status-footer">
+  <div class="status-text">
+    <span class="status-dot" [class.online]="networkStatus !== 'offline'" [class.offline]="networkStatus === 'offline'"></span>
+    {{ networkStatus === 'offline' ? 'Offline' : 'Online' }}
+  </div>
 </ion-footer>
