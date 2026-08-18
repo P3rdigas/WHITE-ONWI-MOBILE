@@ -90,11 +90,9 @@ export class MyDocumentsPage extends BaseDocumentPage implements OnInit {
     return this.utilsService.filterFolder(this.documents, folder);
   }
 
-  getTotalDocumentsOfFolder(folder: any): number {
-    if (!this.fullDocuments) return 0;
-    const direct = this.utilsService.filterFolder(this.fullDocuments, folder).length;
-    const children = folder.children?.reduce((sum: number, child: any) => sum + this.getTotalDocumentsOfFolder(child), 0) ?? 0;
-    return direct + children;
+  getDocCountLabel(folder: any): string {
+    const count = this.getTotalDocumentsOfFolder(folder);
+    return `${count} ${count === 1 ? 'doc' : 'docs'}`;
   }
 
   exit() {
@@ -224,4 +222,10 @@ export class MyDocumentsPage extends BaseDocumentPage implements OnInit {
     this.updateFilters();
   }
 
+  private getTotalDocumentsOfFolder(folder: any): number {
+    if (!this.fullDocuments) return 0;
+    const direct = this.utilsService.filterFolder(this.fullDocuments, folder).length;
+    const children = folder.children?.reduce((sum: number, child: any) => sum + this.getTotalDocumentsOfFolder(child), 0) ?? 0;
+    return direct + children;
+  }
 }

@@ -48,7 +48,7 @@
         </ion-button>
       </ion-col>
     </ion-row>
-    
+
     <ion-row>
       <ion-col size="12">
         <ion-segment id="tabs-folders" mode="md" scrollable value="{{tabsFolders}}" class="app-segment">
@@ -91,9 +91,18 @@
   </div>
 
   <!-- FOLDER MODE -->
-  <div *ngIf="viewMode === 'folder'">
+  <!-- <div *ngIf="viewMode === 'folder'">
     <ion-text color="dark" *ngIf="!filteredFolders?.length">
       <p class="ion-padding">No files found.</p>
+    </ion-text>
+
+    <ng-container *ngFor="let folder of filteredFolders">
+      <ng-container *ngTemplateOutlet="folderTemplate; context: { folder: folder, depth: 0 }"></ng-container>
+    </ng-container>
+  </div> -->
+  <div *ngIf="viewMode === 'folder'" class="folder-mode-wrapper">
+    <ion-text color="dark" *ngIf="!filteredFolders?.length">
+      <p class="ion-padding empty-state">No files found.</p>
     </ion-text>
 
     <ng-container *ngFor="let folder of filteredFolders">
@@ -102,7 +111,7 @@
   </div>
 
   <!-- Recursive folder template -->
-  <ng-template #folderTemplate let-folder="folder" let-depth="depth">
+  <!-- <ng-template #folderTemplate let-folder="folder" let-depth="depth">
     <ion-item lines="full" [style.padding-left.px]="depth * 16" (click)="toggleFolder(folder)" button>
       <ion-icon slot="start" [name]="folder.open ? 'folder-open-outline' : 'folder-outline'" color="primary"></ion-icon>
       <ion-label>
@@ -132,6 +141,43 @@
           <ion-icon src="assets/images/icon-updated.svg" slot="end" *ngIf="doc.DocumentVersionIsLastVersion" style="font-size: 1em;"></ion-icon>
           <ion-icon src="assets/images/icon-download.svg" slot="end" *ngIf="doc.DownloadStatus && doc.DownloadStatus === 'Waiting'" style="font-size: 1em;"></ion-icon>
           <ion-icon src="assets/images/icon-available.svg" slot="end" *ngIf="doc.DownloadStatus && doc.DownloadStatus === 'Downloaded'" style="font-size: 1em;"></ion-icon>
+        </ion-item>
+      </ion-list>
+    </div>
+  </ng-template> -->
+
+  <ng-template #folderTemplate let-folder="folder" let-depth="depth">
+    <div class="folder-card" [style.margin-left.px]="depth * 14" [class.folder-open]="folder.open">
+      <ion-item lines="none" (click)="toggleFolder(folder)" button class="folder-header">
+        <div class="folder-icon-wrap" slot="start">
+          <ion-icon [name]="folder.open ? 'folder-open-outline' : 'folder-outline'"></ion-icon>
+        </div>
+        <ion-label>
+          <span class="folder-name">{{ folder.Name }}</span>
+        </ion-label>
+        <ion-badge slot="end" class="doc-count-badge">{{ getDocCountLabel(folder) }}</ion-badge>
+        <ion-icon slot="end" class="chevron-icon" [name]="folder.open ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
+      </ion-item>
+    </div>
+
+    <div *ngIf="folder.open" class="folder-children">
+      <ng-container *ngFor="let child of folder.children">
+        <ng-container *ngTemplateOutlet="folderTemplate; context: { folder: child, depth: depth + 1 }"></ng-container>
+      </ng-container>
+
+      <ion-list lines="none" class="ion-no-margin doc-list">
+        <ion-item lines="none" *ngFor="let doc of getDocumentsOfFolder(folder); let i = index"
+          [style.margin-left.px]="(depth + 1) * 14" class="doc-item">
+          <ion-img [src]="doc.DocumentVersionIcon" slot="start" (click)="openFile(doc)" class="doc-thumb"></ion-img>
+          <ion-label (click)="openFile(doc)" class="doc-label">
+            <b>{{ doc.DocumentTag }} </b>{{ doc.DocumentDesignation }}
+          </ion-label>
+          <ion-badge slot="end" class="version-badge">{{ doc.DocumentVersion }}</ion-badge>
+          <ion-icon src="assets/images/icon-star.svg" slot="end" *ngIf="(!doc.DocumentFavorite || doc.DocumentFavorite === false || doc.DocumentFavorite === 'false') && networkStatus !== 'offline'" class="doc-action-icon" (click)="addFavorite(doc, i)"></ion-icon>
+          <ion-icon src="assets/images/icon-starfull.svg" slot="end" *ngIf="(doc.DocumentFavorite === true || doc.DocumentFavorite === 'true') && networkStatus !== 'offline'" class="doc-action-icon" (click)="removeFavorite(doc, i)"></ion-icon>
+          <ion-icon src="assets/images/icon-updated.svg" slot="end" *ngIf="doc.DocumentVersionIsLastVersion" class="doc-action-icon"></ion-icon>
+          <ion-icon src="assets/images/icon-download.svg" slot="end" *ngIf="doc.DownloadStatus && doc.DownloadStatus === 'Waiting'" class="doc-action-icon"></ion-icon>
+          <ion-icon src="assets/images/icon-available.svg" slot="end" *ngIf="doc.DownloadStatus && doc.DownloadStatus === 'Downloaded'" class="doc-action-icon"></ion-icon>
         </ion-item>
       </ion-list>
     </div>
