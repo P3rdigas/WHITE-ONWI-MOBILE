@@ -17,7 +17,7 @@ export abstract class BaseDocumentPage {
     }
 
     scrollTop() {
-        this.content.scrollToTop(0);
+        this.content.scrollToTop(400);
     }
 
     async addFavorite(doc: any, indexDoc: number) {
