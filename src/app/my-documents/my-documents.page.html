@@ -81,7 +81,13 @@
         <ion-label (click)="openFile(doc)" class="doc-label">
           <b>{{ doc.DocumentTag }} </b>{{ doc.DocumentDesignation }}
         </ion-label>
-        <ion-badge slot="end" class="version-badge">{{ doc.DocumentVersion }}</ion-badge>
+        
+        <ng-container *ngIf="splitVersion(doc.DocumentVersion) as v">
+            <ion-badge slot="end" class="version-badge" *ngIf="v.top || v.bottom">
+              <span class="version-line">{{ v.top }}</span>
+              <span class="version-line" *ngIf="v.bottom">{{ v.bottom }}</span>
+            </ion-badge>
+          </ng-container>
 
         <ion-icon src="assets/images/icon-star.svg" slot="end"
           *ngIf="!doc.DocumentFavorite && networkStatus !== 'offline'"

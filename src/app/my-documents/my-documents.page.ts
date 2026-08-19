@@ -97,17 +97,6 @@ export class MyDocumentsPage extends BaseDocumentPage implements OnInit {
     return `${count} ${count === 1 ? 'doc' : 'docs'}`;
   }
 
-  splitVersion(version: string): { top: string; bottom: string } {
-    if (!version) return { top: '', bottom: '' };
-    const match = version.match(/\sTR\./);
-    if (!match || match.index === undefined) {
-      return { top: version.trim(), bottom: '' };
-    }
-    const top = version.substring(0, match.index).trim();
-    const bottom = version.substring(match.index).trim();
-    return { top, bottom };
-  }
-
   async openDocInfo(doc: any, event: Event) {
     event.stopPropagation();
 

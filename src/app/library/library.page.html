@@ -1,59 +1,44 @@
-<ion-header mode="ios">
+<ion-header mode="ios" class="app-header">
   <ion-toolbar mode="ios">
-    <ion-grid>
-      <ion-row>
-        <ion-col size="5">
-          <div id="logo">
-            <ion-img src="assets/images/logo.png"></ion-img>
-          </div>
-        </ion-col>
-        <ion-col size="5">
-          <ion-text id="nome">
-            <p>{{ user.Name }}</p>
-          </ion-text>
-          <ion-text id="sair" (click)="exit()">
-            <p>Exit <ion-icon size="small" src="assets/images/exit.svg"></ion-icon></p>
-          </ion-text>
-        </ion-col>
-        <ion-col size="2">
-          <ion-avatar id="img-perfil">
-            <ion-img [src]="user.Photo"></ion-img>
-          </ion-avatar>
-        </ion-col>
-        <ion-col size="12">
-          <ion-img src="assets/images/divisor.svg"></ion-img>
-        </ion-col>
-      </ion-row>
-    </ion-grid>
+    <div class="header-row">
+      <div class="logo-wrap">
+        <ion-img src="assets/images/white_onwi_logo.png"></ion-img>
+      </div>
+
+      <div class="user-info">
+        <p class="username">{{ user.Name }}</p>
+        <div class="logout" (click)="exit()">
+          <span>Logout</span>
+          <ion-icon name="log-out"></ion-icon>
+        </div>
+      </div>
+
+      <ion-avatar class="profile-avatar">
+        <img [src]="user.Photo" />
+      </ion-avatar>
+    </div>
+
+    <ion-img src="assets/images/divider.svg" class="header-divider"></ion-img>
   </ion-toolbar>
 </ion-header>
 
 <ion-content [scrollEvents]="true" (ionScroll)="logScrolling($event)">
   <ion-grid>
-    <ion-row>
-      <!-- <ion-col size="5" offset="1" class="ion-padding-horizontal"> -->
-      <ion-col size="12" class="ion-padding-horizontal ion-text-right">
-        <ion-button mode="ios" color="medium" size="small" expand="block" (click)="refresh(true)">
-          <ion-icon slot="start" src="assets/images/img-refresh.svg"></ion-icon> Refresh
-        </ion-button>
+    <ion-row class="content-toolbar">
+      <ion-col size="10" class="toolbar-search">
+        <ion-searchbar mode="ios" placeholder="Search documents" [(ngModel)]="search" (ionChange)="updateFilters()" show-clear-button="always"></ion-searchbar>
       </ion-col>
-      <ion-col size="12">
-        <ion-searchbar mode="ios" placeholder="" [(ngModel)]="search" (ionChange)="updateFilters()"></ion-searchbar>
+
+      <ion-col size="2" class="toolbar-refresh">
+        <ion-button mode="ios" class="refresh-button" (click)="refresh(true)">
+          <ion-icon slot="icon-only" name="refresh-outline"></ion-icon>
+        </ion-button>
       </ion-col>
     </ion-row>
 
-    <!-- Toggle alphabetic order -->
-    <!-- <ion-row>
-      <ion-col size="12" class="ion-text-right ion-padding-horizontal">
-        <ion-button fill="clear" size="small" (click)="toggleAlphabeticOrder()">
-          <ion-icon slot="icon-only" name="text-outline"></ion-icon>
-        </ion-button>
-      </ion-col>
-    </ion-row> -->
-
     <ion-row>
       <ion-col size="12">
-        <ion-segment id="tabs-folders" mode="md" scrollable value="{{tabsFolders}}">
+        <ion-segment id="tabs-folders" mode="md" scrollable value="{{tabsFolders}}" class="app-segment">
           <ion-segment-button value="Library">
             <ion-label>Library</ion-label>
           </ion-segment-button>
@@ -72,7 +57,7 @@
   </ion-grid>
 
   <!-- Folder tree view -->
-  <div>
+  <div class="folder-mode-wrapper">
     <ion-text color="dark" *ngIf="isUpdating">
       <p class="ion-padding empty-state">The documents are being updated. Take a break or go to other pages!</p>
     </ion-text>
@@ -142,10 +127,9 @@
   </ion-fab>
 </ion-content>
 
-<ion-footer color="medium" mode="md" id="footer-database">
-  <ion-toolbar>
-    <ion-title>
-      <span *ngIf="networkStatus === 'offline'">Offline</span>
-    </ion-title>
-  </ion-toolbar>
+<ion-footer color="small" mode="md" id="footer-database" class="status-footer">
+  <div class="status-text">
+    <span class="status-dot" [class.online]="networkStatus !== 'offline'" [class.offline]="networkStatus === 'offline'"></span>
+    {{ networkStatus === 'offline' ? 'Offline' : 'Online' }}
+  </div>
 </ion-footer>

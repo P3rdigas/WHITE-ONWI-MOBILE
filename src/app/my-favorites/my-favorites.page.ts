@@ -4,6 +4,7 @@ import { Events } from '../services/events/events';
 import { UtilsService } from '../services/utils/utils.service';
 import { SqliteService } from '../services/sqlite/sqlite.service';
 import { BaseDocumentPage } from '../base-document.page';
+import { AlertController } from '@ionic/angular';
 
 @Component({
   selector: 'app-my-favorites',
@@ -24,6 +25,7 @@ export class MyFavoritesPage extends BaseDocumentPage implements OnInit {
     private apiService: ApiService,
     private sqlite: SqliteService,
     private events: Events,
+    private alertController: AlertController
   ) {
     super(utilsService);
     this.user = localStorage.getItem('onwi.User');
@@ -69,6 +71,22 @@ export class MyFavoritesPage extends BaseDocumentPage implements OnInit {
 
   inputFilterSearch() {
     this.documents = this.utilsService.filterDocumentSearch(this.documents, this.search);
+  }
+
+  async openDocInfo(doc: any, event: Event) {
+    event.stopPropagation();
+
+    const alert = await this.alertController.create({
+      header: `${doc.DocumentTag} ${doc.DocumentDesignation}`,
+      cssClass: 'doc-info-alert',
+      message: `
+        <div class="doc-info-row"><span>Latest version: </span><b>${doc.DocumentVersionIsLastVersion ? 'Yes' : 'No'}</b></div>
+        <div class="doc-info-row"><span>Download status: </span><b>${doc.DownloadStatus ? doc.DownloadStatus : '-'}</b></div>
+        <div class="doc-info-row"><span>Distributed on: </span><b>${this.utilsService.formatDate(doc.DocumentDate)}</b></div>
+      `,
+      buttons: ['Close']
+    });
+    await alert.present();
   }
 
   async getFavoritesAPI() {

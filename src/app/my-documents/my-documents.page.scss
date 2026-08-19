@@ -1,40 +1,3 @@
-// ion-content {
-//   --background: #FCFCFC;
-// }
-// ion-header ion-toolbar {
-//   --border-width: 0px;
-//   --background: #FCFCFC;
-// }
-// ion-header ion-toolbar #logo {
-//   -webkit-box-shadow: 0 3px 6px rgba(0,0,0,.16);
-//   box-shadow: 0 3px 6px rgba(0,0,0,.16);
-//   border-radius: 5px;
-//   width: 100%;
-//   padding: 5px 10px;
-// }
-// ion-header ion-toolbar #logo ion-img {
-//   height: 45px !important;
-// }
-// ion-header ion-toolbar #img-perfil {
-//   -webkit-box-shadow: 0 3px 6px rgba(0,0,0,.16);
-//   box-shadow: 0 3px 6px rgba(0,0,0,.16);
-// }
-// ion-header ion-toolbar #nome {
-//   color: #C4C4C4;
-// }
-// ion-header ion-toolbar #sair {
-//   color: #2F2F2F;
-// }
-// ion-header ion-toolbar #sair ion-icon {
-//   vertical-align: bottom;
-// }
-// ion-header ion-toolbar #nome p,
-// ion-header ion-toolbar #sair p {
-//   text-align: right;
-//   margin-top: 0px;
-//   margin-bottom: 2px;
-// }
-
 .app-header {
   font-family: var(--app-font-brand);
 
@@ -336,10 +299,6 @@ ion-content {
       .doc-label {
         font-size: 13.5px;
         color: black;
-
-        b {
-          color: var(--white-dark-blue);
-        }
       }
 
       .version-badge {

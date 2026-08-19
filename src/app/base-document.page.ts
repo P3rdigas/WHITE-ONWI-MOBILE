@@ -20,6 +20,17 @@ export abstract class BaseDocumentPage {
         this.content.scrollToTop(400);
     }
 
+    splitVersion(version: string): { top: string; bottom: string } {
+        if (!version) return { top: '', bottom: '' };
+        const match = version.match(/\sTR\./);
+        if (!match || match.index === undefined) {
+        return { top: version.trim(), bottom: '' };
+        }
+        const top = version.substring(0, match.index).trim();
+        const bottom = version.substring(match.index).trim();
+        return { top, bottom };
+    }
+
     async addFavorite(doc: any, indexDoc: number) {
         const canProceed = await this.canProceedWithNetwork(
             this.networkStatus,
