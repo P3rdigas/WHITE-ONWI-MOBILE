@@ -90,13 +90,12 @@ export class UtilsService {
   }
 
   createAlert(title: string, text: string, optionButtons?: (string | AlertButton)[], subtitle?: string) {
-    // console.log('createAlert');
     if (optionButtons === undefined) {
       optionButtons = ['OK'];
     }
-    // console.log(optionButtons);
+
     const alert = this.alertController.create({
-      cssClass: 'alertAlphacode',
+      cssClass: 'app-alert',
       header: title,
       message: text,
       subHeader: subtitle,
@@ -671,14 +670,8 @@ export class UtilsService {
     let loading = await this.createLoading();
     await loading.present();
 
-    console.log("PRINTING THE DOCUMENT")
-    console.log("DOCUMENT: ", JSON.stringify(doc, null, 2));
-    console.log("END PRINTING THE DOCUMENT")
-
     // Check permissions
     const permissionResult = await this.getPermissionDocument(user.ID, doc.DocumentID);
-
-    console.log('PERMISSION RESULT:', JSON.stringify(permissionResult, null, 2));
 
     if (!permissionResult || permissionResult === 'denied') {
       if (permissionResult === 'denied') {

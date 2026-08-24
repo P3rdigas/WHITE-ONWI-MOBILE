@@ -9,11 +9,11 @@ ion-loading.loading {
   --background: white;
   --spinner-color: var(--white-dark-blue);
   --backdrop-opacity: 0.55;
-}
 
-ion-loading.loading .loading-wrapper {
-  border-radius: 16px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  .loading-wrapper {
+    border-radius: 16px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  }
 }
 
 .doc-info-alert {
@@ -75,6 +75,59 @@ ion-loading.loading .loading-wrapper {
     border-radius: 12px;
     font-weight: 700;
     font-size: 12px;
+    margin: 0;
+
+    .alert-button-inner {
+      justify-content: center;
+    }
+  }
+}
+
+.app-alert {
+  --backdrop-opacity: 0.6;
+
+  .alert-wrapper {
+    background-color: white;
+    border-radius: 18px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  }
+
+  .alert-head {
+    padding-top: 20px;
+    padding-bottom: 4px;
+
+    .alert-title {
+      font-weight: 700;
+      font-size: 16px;
+      color: var(--white-dark-blue);
+    }
+
+    .alert-sub-title {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--white-gray);
+      margin-top: 4px;
+    }
+  }
+
+  .alert-message {
+    padding: 8px 20px 4px;
+    color: black;
+    font-size: 14px;
+    line-height: 1.4;
+  }
+
+  .alert-button-group {
+    padding: 8px 12px 12px;
+    gap: 8px;
+  }
+
+  .alert-button {
+    color: white;
+    background: var(--white-dark-blue);
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 14px;
     margin: 0;
 
     .alert-button-inner {
