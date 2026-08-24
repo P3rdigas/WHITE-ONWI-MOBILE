@@ -212,7 +212,6 @@ export class MyDocumentsPage extends BaseDocumentPage implements OnInit {
     return result;
   }
 
-  // TODO: Use DocumentDate for distribution instead of DocumentReceivedDate (date that the user accepted the document)
   private applySortAndFilter() {
     let sorted = [...this.fullDocuments];
 
