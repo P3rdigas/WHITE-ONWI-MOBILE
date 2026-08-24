@@ -3,7 +3,6 @@ import { ModalController, NavParams } from '@ionic/angular';
 import { ApiService } from '../services/api/api.service';
 import { UtilsService } from '../services/utils/utils.service';
 import { SqliteService } from '../services/sqlite/sqlite.service';
-import { JsonPipe } from '@angular/common';
 
 @Component({
   selector: 'app-modal-approval',
@@ -23,7 +22,6 @@ export class ModalApprovalComponent implements OnInit {
   ) { }
 
   ngOnInit() {
-    // this.data = this.navParams.data.document;
     this.data = this.navParams.data['document'];
     this.data.isReceived = this.data.isReceived == 'true' ? true : false;
     this.data.wasUnderstood = this.data.wasUnderstood == 'true' ? true : false;
@@ -70,7 +68,7 @@ export class ModalApprovalComponent implements OnInit {
           // Update my favorites
           const favDoc = await this.sqliteService.getMyFavorites(prepDoc.DocumentID);
           if (favDoc && favDoc.length) {
-            const oldFavDoc = doc[0];
+            const oldFavDoc = favDoc[0];
 
             if (prepDoc.DocumentVersionID === oldFavDoc.DocumentVersionID) {
               await this.sqliteService.updateMyFavoritesList([prepDoc]);

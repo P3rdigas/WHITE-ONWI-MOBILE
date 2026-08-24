@@ -1,10 +1,107 @@
-ion-toolbar {
-  --border-width: 0px !important;
+.modal-header {
+  ion-toolbar {
+    --background: white;
+    --border-width: 0px !important;
+  }
+
+  .close-btn {
+    --color: var(--white-gray);
+  }
 }
-.titulo h5 {
-  margin-bottom: 30px;
-}
-.titulo span {
-  font-weight: 600;
-  border-bottom: 2px solid #B92224;
+
+.approve-modal-content {
+  --background: white;
+
+  .modal-title {
+    display: block;
+    margin-bottom: 4px;
+
+    h5 {
+      display: inline-block;
+      font-weight: 700;
+      font-size: 18px;
+      color: var(--white-dark-blue);
+      padding-bottom: 8px;
+      border-bottom: 3px solid var(--white-light-blue);
+      margin-bottom: 24px;
+    }
+  }
+
+  .modal-description {
+    p {
+      font-size: 13.5px;
+      color: var(--white-gray);
+      line-height: 1.5;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+  }
+
+  .approve-card {
+    background: #f7f7f9;
+    border-radius: 16px;
+    padding: 4px 8px;
+    margin-bottom: 16px;
+
+    .checkbox-item {
+      --background: transparent;
+      --background-hover: transparent;
+      --background-activated: transparent;
+      --background-focused: transparent;
+      --ripple-color: transparent;
+      --padding-start: 4px;
+      --min-height: 44px;
+
+      ion-checkbox {
+        --size: 20px;
+        --border-radius: 6px;
+        --background: white;
+        --border-color: var(--white-gray);
+        --checkbox-background-checked: var(--white-dark-blue);
+        --border-color-checked: var(--white-dark-blue);
+        margin-inline-end: 12px;
+      }
+
+      ion-label {
+        font-size: 14px;
+        font-weight: 500;
+        color: black;
+      }
+    }
+  }
+
+  .comment-item {
+    --background: #f7f7f9;
+    --border-radius: 14px;
+    --padding-start: 12px;
+    --padding-end: 12px;
+    border-radius: 14px;
+    margin-bottom: 24px;
+
+    ion-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--white-dark-blue);
+      margin-bottom: 6px;
+    }
+
+    .comment-textarea {
+      --padding-start: 0;
+      --padding-top: 4px;
+      font-size: 13.5px;
+    }
+  }
+
+  .accept-button {
+    --background: var(--white-dark-blue);
+    --background-activated: var(--white-light-blue);
+    --border-radius: 14px;
+    font-weight: 700;
+    height: 48px;
+
+    &[disabled] {
+      --background: var(--white-gray);
+      opacity: 0.6;
+    }
+  }
 }
