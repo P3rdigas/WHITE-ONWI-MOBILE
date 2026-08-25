@@ -14,6 +14,7 @@ import { Network } from '@capacitor/network';
 import { SecureStorageService } from './services/secure-storage/secure-storage.service';
 import { environment } from 'src/environments/environment';
 import { LoadingProgressService } from './services/loading-progress/loading-progress.service';
+import { ScreenOrientation } from '@capacitor/screen-orientation';
 
 @Component({
   selector: 'app-root',
@@ -110,7 +111,9 @@ export class AppComponent implements OnInit {
     this.events.publish('changeNetworkStatus', status);
   }
 
-  ngOnInit() {
+  async ngOnInit() {
+    // TODO: The margins need to be recalculated in order to allow and have better UI when rotating the phone
+    await ScreenOrientation.lock({ orientation: 'portrait' });
   }
 
   // TODO: Check the main API TODO, should use tokens

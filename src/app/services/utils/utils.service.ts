@@ -257,7 +257,7 @@ export class UtilsService {
       if (doc.DocumentVersionIcon) {
         doc.DocumentVersionIcon = 'data:image/png;base64,' + doc.DocumentVersionIcon;
       } else {
-        doc.DocumentVersionIcon = 'assets/images/icon-pdf.svg';
+        doc.DocumentVersionIcon = 'assets/icons/icon-pdf.svg';
       }
 
       // Document reference tag
