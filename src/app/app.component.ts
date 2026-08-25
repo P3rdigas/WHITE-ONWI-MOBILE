@@ -13,6 +13,7 @@ import { SqliteService } from './services/sqlite/sqlite.service';
 import { Network } from '@capacitor/network';
 import { SecureStorageService } from './services/secure-storage/secure-storage.service';
 import { environment } from 'src/environments/environment';
+import { LoadingProgressService } from './services/loading-progress/loading-progress.service';
 
 @Component({
   selector: 'app-root',
@@ -34,6 +35,7 @@ export class AppComponent implements OnInit {
     private utilsService: UtilsService,
     private sqlite: SqliteService,
     private secureStorageService: SecureStorageService,
+    private loadingProgress: LoadingProgressService,
     private events: Events,
     private navCtrl: NavController,
     // private appVersion: AppVersion,
@@ -72,18 +74,26 @@ export class AppComponent implements OnInit {
       // If the user has not logged in yet or continue to be online don't fire the update
       if (!this.utilsService.loginCompleted || !wasOffline) return;
 
-      if (status.connected && status.connectionType === 'wifi') {
-        this.utilsService.backgroundUpdateAll();
-      } else if (status.connected && status.connectionType !== 'wifi') {
-        const alert = await this.alertController.create({
-          header: 'Use mobile data?',
-          message: 'Do you want to update you documents using mobile data?',
-          buttons: [
-            { text: 'No', handler: () => { } },
-            { text: 'Yes', handler: () => { this.utilsService.backgroundUpdateAll(); } }
-          ]
-        });
-        await alert.present();
+      if (status.connected) {
+         if (this.networkStatus.connectionType !== 'wifi') {
+          const proceed = await this.utilsService.validateMobileDataUsage(
+            'Do you want to update you documents using mobile data?'
+          );
+          if (!proceed) {
+            return;
+          }
+        }
+
+        // Total steps: 6 backgroundUpdateAll steps
+        this.loadingProgress.start(6);
+        const progressModal = await this.utilsService.createProgressModal();
+        progressModal.present();
+
+        await this.utilsService.backgroundUpdateAll();
+
+        this.loadingProgress.finish();
+        await new Promise(resolve => setTimeout(resolve, 1000)); // brief pause to let the user see the 'Done 100%' message
+        await progressModal.dismiss();
       }
     });
 

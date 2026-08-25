@@ -139,7 +139,7 @@ export class LoginPage implements OnInit {
             if (this.result?.value?.length) {
               if (this.result.value[0].isEnabled) {
                 if (localStorage.getItem('onwi.UserID')) {
-                  // Se já tem usuário salvo, mas é diferente do atual, apaga tudo e primeiro login
+                  // If an user already exists, delete everything
                   if (localStorage.getItem('onwi.UserID') !== this.result.value[0].ID) {
                     localStorage.removeItem('onwi.Folders');
                     localStorage.removeItem('onwi.PermissionsOffline');
@@ -150,7 +150,6 @@ export class LoginPage implements OnInit {
                     this.sqlite.clearAllRecords();
                   }
                 }
-                // Salva no localStorage
                 localStorage.setItem('onwi.UserID', this.result.value[0].ID);
                 localStorage.setItem('onwi.User', JSON.stringify(this.result.value[0]));
 
@@ -165,8 +164,9 @@ export class LoginPage implements OnInit {
                   }
 
                   this.loadingProgress.finish();
-                  setTimeout(() => progressModal.dismiss(), 1000); // brief pause to let the user see the 'Done 100%' message
-
+                  await new Promise(resolve => setTimeout(resolve, 1000)); // brief pause to let the user see the 'Done 100%' message
+                  await progressModal.dismiss();
+                  
                   this.utilsService.loginCompleted = true;
                   this.navCtrl.navigateRoot(['/my-documents']);
                 });
