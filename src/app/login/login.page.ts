@@ -103,6 +103,15 @@ export class LoginPage implements OnInit {
           alert.present();
         }
       } else {
+        if (this.networkStatus.connectionType !== 'wifi') {
+          const proceed = await this.utilsService.validateMobileDataUsage(
+            'You are about to log in using mobile data, which will sync all documents. Do you want to continue?'
+          );
+          if (!proceed) {
+            return;
+          }
+        }
+
         // Total steps: encryptPass + validateUser + 6 backgroundUpdateAll steps = 8
         this.loadingProgress.start(8);
         const progressModal = await this.utilsService.createProgressModal();

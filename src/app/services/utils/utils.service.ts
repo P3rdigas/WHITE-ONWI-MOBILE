@@ -51,7 +51,7 @@ export class UtilsService {
     }
 
     const user = JSON.parse(userRaw);
-    user.Photo = user.Photo ? 'data:image/png;base64,' + user.Photo : 'assets/images/logo.png';
+    user.Photo = user.Photo ? 'data:image/png;base64,' + user.Photo : 'assets/images/logo-onwi.png';
 
     return user;
   }
@@ -77,7 +77,6 @@ export class UtilsService {
 
   createToast(text: string, seconds = 2500) {
     const toast = this.toastController.create({
-      cssClass: 'toastAlphacode',
       message: text,
       duration: seconds
     });
@@ -156,7 +155,6 @@ export class UtilsService {
 
           if (folder.children.length > 0) {
             folder.open = false;
-            folder.icon = 'assets/images/md-arrow-dropdown.svg';
           }
 
           children.push(folder);
@@ -896,7 +894,7 @@ export class UtilsService {
   async validateMobileDataUsage(message: string = 'Do you want to download the file using mobile data?'): Promise<boolean> {
     return new Promise<boolean>(async (resolve) => {
       const alert = await this.alertController.create({
-        cssClass: 'alertAlphacode',
+        cssClass: 'app-alert',
         header: 'You are not on WiFi connection',
         message,
         buttons: [{
@@ -1024,7 +1022,7 @@ export class UtilsService {
     // console.log('exitApp');
     if (ask) {
       const alert = await this.alertController.create({
-        cssClass: 'alertAlphacode',
+        cssClass: 'app-alert',
         header: 'Are you sure?',
         message: 'Do you want to logout?',
         buttons: [{

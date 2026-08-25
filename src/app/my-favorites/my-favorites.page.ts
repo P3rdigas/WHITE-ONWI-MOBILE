@@ -82,7 +82,6 @@ export class MyFavoritesPage extends BaseDocumentPage implements OnInit {
       message: `
         <div class="doc-info-row"><span>Latest version: </span><b>${doc.DocumentVersionIsLastVersion ? 'Yes' : 'No'}</b></div>
         <div class="doc-info-row"><span>Download status: </span><b>${doc.DownloadStatus ? doc.DownloadStatus : '-'}</b></div>
-        <div class="doc-info-row"><span>Distributed on: </span><b>${this.utilsService.formatDate(doc.DocumentDate)}</b></div>
       `,
       buttons: ['Close']
     });
@@ -109,8 +108,6 @@ export class MyFavoritesPage extends BaseDocumentPage implements OnInit {
       if (documents && documents.length) {
         this.fullDocuments = [...documents];
         this.applySort();
-        console.log('accepted', JSON.stringify(this.acceptedDocuments, null, 2));
-        console.log('notAccepted', JSON.stringify(this.notAcceptedDocuments, null, 2));
       }
     })
     .catch((error) => {

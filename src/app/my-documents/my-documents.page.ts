@@ -20,7 +20,7 @@ export class MyDocumentsPage extends BaseDocumentPage implements OnInit {
   public fullDocuments: any = null;
   public folders: any[] = [];
   public filteredFolders: any[] = [];
-  public viewMode: ViewMode = 'folder';
+  public viewMode: ViewMode = 'list';
   public sortMode: SortMode = 'alphabetic';
   public search = '';
 

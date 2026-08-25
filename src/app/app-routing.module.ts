@@ -28,10 +28,6 @@ const routes: Routes = [
     loadChildren: () => import('./last-docs/last-docs.module').then(m => m.LastDocsPageModule)
   },
   {
-    path: 'folder/:id',
-    loadChildren: () => import('./folder/folder.module').then( m => m.FolderPageModule)
-  },
-  {
     path: 'pdf-viewer',
     loadChildren: () => import('./pdf-viewer/pdf-viewer.module').then( m => m.PdfViewerPageModule)
   },
@@ -39,7 +35,6 @@ const routes: Routes = [
     path: 'reset-password',
     loadChildren: () => import('./reset-password/reset-password.module').then( m => m.ResetPasswordPageModule)
   }
-
 ];
 
 @NgModule({

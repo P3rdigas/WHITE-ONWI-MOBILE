@@ -23,8 +23,9 @@ export class ModalApprovalComponent implements OnInit {
 
   ngOnInit() {
     this.data = this.navParams.data['document'];
-    this.data.isReceived = this.data.isReceived == 'true' ? true : false;
-    this.data.wasUnderstood = this.data.wasUnderstood == 'true' ? true : false;
+    // this.data.isReceived = doc.isReceived ? true : false;
+    // this.data.wasUnderstood = doc.wasUnderstood ? true : false;
+    // this.data.Comments = doc.Comments;
   }
 
   async postApprove(data: any) {
@@ -60,9 +61,12 @@ export class ModalApprovalComponent implements OnInit {
             const dDate = new Date(oldDoc.DocumentDate);
 
             if (prepDoc.DocumentVersionID !== oldDoc.DocumentVersionID && pDate.getTime() > dDate.getTime()) {
-              await this.sqliteService.updateMyDocumentsList([prepDoc]);
+              await this.sqliteService.updateDoc(prepDoc, 'myDocuments');
               await this.utilsService.removeLocalFile(oldDoc);
             }            
+          } else {
+            // Does not exist and need to be inserted
+            await this.sqliteService.insertNewDoc(prepDoc, 'myDocuments');
           }
 
           // Update my favorites
@@ -71,13 +75,22 @@ export class ModalApprovalComponent implements OnInit {
             const oldFavDoc = favDoc[0];
 
             if (prepDoc.DocumentVersionID === oldFavDoc.DocumentVersionID) {
-              await this.sqliteService.updateMyFavoritesList([prepDoc]);
+              await this.sqliteService.updateDoc(prepDoc, 'myFavorites');
             }            
           }
 
           // Update last docs
           await this.sqliteService.deleteLastDocDistributed(prepDoc.DocumentVersionID);
         }
+      } else if (response?.isReceived && !response?.wasUnderstood) {
+        const prepared = await this.utilsService.prepareDocumentsNew([response], 'modalApproval');
+
+        // Update locally last docs too
+        if (prepared && prepared.length) {
+          const prepDoc = prepared[0];
+
+          await this.sqliteService.updateDoc(prepDoc, 'lastDocsDistributed');
+        }        
       }
 
       loading.dismiss();

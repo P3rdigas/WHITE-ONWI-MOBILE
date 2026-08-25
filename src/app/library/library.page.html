@@ -62,7 +62,11 @@
       <p class="ion-padding empty-state">The documents are being updated. Take a break or go to other pages!</p>
     </ion-text>
 
-    <ion-text color="dark" *ngIf="!isUpdating && !folders?.length && !fullDocuments?.length">
+    <ion-text color="dark" *ngIf="!isUpdating && !folders?.length">
+      <p class="ion-padding empty-state">Could not load the folders.</p>
+    </ion-text>
+
+    <ion-text color="dark" *ngIf="!isUpdating && folders?.length && !fullDocuments?.length">
       <p class="ion-padding empty-state">No files found.</p>
     </ion-text>
 
@@ -105,13 +109,6 @@
               <span class="version-line" *ngIf="v.bottom">{{ v.bottom }}</span>
             </ion-badge>
           </ng-container>
-
-          <ion-icon src="assets/images/icon-star.svg" slot="end"
-            *ngIf="!doc.DocumentFavorite && networkStatus !== 'offline'"
-            class="doc-action-icon favorite-icon" (click)="addFavorite(doc, i)"></ion-icon>
-          <ion-icon src="assets/images/icon-starfull.svg" slot="end"
-            *ngIf="doc.DocumentFavorite && networkStatus !== 'offline'"
-            class="doc-action-icon favorite-icon" (click)="removeFavorite(doc, i)"></ion-icon>
 
           <ion-icon name="information-circle-outline" slot="end" class="doc-action-icon info-icon"
             (click)="openDocInfo(doc, $event)"></ion-icon>

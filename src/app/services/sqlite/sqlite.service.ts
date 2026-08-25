@@ -66,7 +66,7 @@ export class SqliteService {
       return this.db;
     } catch (error: any) {
       const alert = await this.alertController.create({
-        cssClass: 'alertAlphacode',
+        cssClass: 'app-alert',
         header: 'Something went wrong',
         message: 'There was a problem connecting to the database. Wait a moment.',
         buttons: ['OK']
@@ -96,7 +96,6 @@ export class SqliteService {
     }));
   }
 
-  // TODO: Use DocumentDate for distribution instead of DocumentReceivedDate (date that the user accepted the document)
   async updateMyDocumentsList(documents: any[]): Promise<void> {
     return this.upsertDocumentList('myDocuments', 'DocumentID', documents, (doc) => ({
       columns: [
@@ -399,7 +398,6 @@ export class SqliteService {
     return this.db;
   }
   
-  // TODO: In myDocuments use DocumentDate for distribution instead of DocumentReceivedDate (date that the user accepted the document)
   private async createTables(): Promise<void> {
     const db = this.getDbOrThrow();
 
@@ -531,6 +529,138 @@ export class SqliteService {
         Image BLOB DEFAULT NULL
       );
     `);
+  }
+
+  async insertNewDoc(doc: any, table: 'myFavorites' | 'myDocuments') {
+    const db = this.getDbOrThrow();
+
+    let columns = [];
+    let values = [];
+    if (table === 'myDocuments') {
+      columns = [
+        'DocumentID', 'DocumentFavorite', 'DocumentFavoriteID', 'DocumentType',
+        'DownloadStatus', 'DocumentVersionID', 'DocumentVersionIcon', 'DocumentTag',
+        'DocumentDesignation', 'DocumentReference', 'DocumentDescription', 'DocumentVersion',
+        'DocumentVersionHash', 'DocumentVersionFileID', 'DocumentVersionIsLastVersion',
+        'DocumentVersionExtension', 'DocumentVersionFileName', 'DocumentFolderID',
+        'DocumentURLUser', 'DocumentURLPassword', 'DocumentReceivedDate', 'DocumentDate'
+      ];
+
+      values = [
+        doc.DocumentID, doc.DocumentFavorite, doc.DocumentFavoriteID, doc.DocumentType,
+        doc.DownloadStatus, doc.DocumentVersionID, doc.DocumentVersionIcon, doc.DocumentTag,
+        doc.DocumentDesignation, doc.DocumentReference, doc.DocumentDescription,
+        doc.DocumentVersion, doc.DocumentVersionHash, doc.DocumentVersionFileID,
+        doc.DocumentVersionIsLastVersion ? 1 : 0, doc.DocumentVersionExtension,
+        doc.DocumentVersionFileName, doc.DocumentFolderID, doc.DocumentURLUser,
+        doc.DocumentURLPassword, doc.ReceivedDate, doc.Date
+      ];
+    } else {
+      columns = [
+        'DocumentID', 'DocumentFavorite', 'DocumentFavoriteID', 'DocumentType',
+        'DownloadStatus', 'DocumentVersionID', 'DocumentVersionIcon', 'DocumentTag',
+        'DocumentDesignation', 'DocumentReference', 'DocumentDescription',
+        'DocumentVersion', 'DocumentVersionHash', 'DocumentVersionFileID',
+        'DocumentVersionIsLastVersion', 'DocumentVersionExtension', 'DocumentVersionFileName',
+        'DocumentFolderID', 'DocumentURLUser', 'DocumentURLPassword', 'isReceived', 'wasUnderstood'
+      ];
+
+      values = [
+        doc.DocumentID, doc.DocumentFavorite, doc.DocumentFavoriteID, doc.DocumentType,
+        doc.DownloadStatus, doc.DocumentVersionID, doc.DocumentVersionIcon, doc.DocumentTag,
+        doc.DocumentDesignation, doc.DocumentReference, doc.DocumentDescription,
+        doc.DocumentVersion, doc.DocumentVersionHash, doc.DocumentVersionFileID,
+        doc.DocumentVersionIsLastVersion ? 1 : 0, doc.DocumentVersionExtension,
+        doc.DocumentVersionFileName, doc.DocumentFolderID, doc.DocumentURLUser,
+        doc.DocumentURLPassword, doc.isReceived ? 1 : 0, doc.wasUnderstood ? 1 : 0
+      ];
+    }
+
+    const placeholders = columns.map(() => '?').join(', ');
+    await db.run(`INSERT INTO ${table} (${columns.join(', ')}) VALUES (${placeholders})`, values);
+  }
+
+  async updateDoc(doc: any, table: 'myDocuments' | 'myFavorites' | 'lastDocsDistributed') {
+    const db = this.getDbOrThrow();
+
+    let columns = [];
+    let values = [];
+    let lookupKey = '';
+    if (table === 'myDocuments') {
+      columns = [
+        'DocumentID', 'DocumentFavorite', 'DocumentFavoriteID', 'DocumentType',
+        'DownloadStatus', 'DocumentVersionID', 'DocumentVersionIcon', 'DocumentTag',
+        'DocumentDesignation', 'DocumentReference', 'DocumentDescription', 'DocumentVersion',
+        'DocumentVersionHash', 'DocumentVersionFileID', 'DocumentVersionIsLastVersion',
+        'DocumentVersionExtension', 'DocumentVersionFileName', 'DocumentFolderID',
+        'DocumentURLUser', 'DocumentURLPassword', 'DocumentReceivedDate', 'DocumentDate'
+      ];
+
+      values = [
+        doc.DocumentID, doc.DocumentFavorite, doc.DocumentFavoriteID, doc.DocumentType,
+        doc.DownloadStatus, doc.DocumentVersionID, doc.DocumentVersionIcon, doc.DocumentTag,
+        doc.DocumentDesignation, doc.DocumentReference, doc.DocumentDescription,
+        doc.DocumentVersion, doc.DocumentVersionHash, doc.DocumentVersionFileID,
+        doc.DocumentVersionIsLastVersion ? 1 : 0, doc.DocumentVersionExtension,
+        doc.DocumentVersionFileName, doc.DocumentFolderID, doc.DocumentURLUser,
+        doc.DocumentURLPassword, doc.ReceivedDate, doc.Date
+      ];
+
+      lookupKey = 'DocumentID';
+    } else if (table === 'myFavorites') {
+      columns = [
+        'DocumentID', 'DocumentFavorite', 'DocumentFavoriteID', 'DocumentType',
+        'DownloadStatus', 'DocumentVersionID', 'DocumentVersionIcon', 'DocumentTag',
+        'DocumentDesignation', 'DocumentReference', 'DocumentDescription',
+        'DocumentVersion', 'DocumentVersionHash', 'DocumentVersionFileID',
+        'DocumentVersionIsLastVersion', 'DocumentVersionExtension', 'DocumentVersionFileName',
+        'DocumentFolderID', 'DocumentURLUser', 'DocumentURLPassword', 'isReceived', 'wasUnderstood'
+      ];
+
+      values = [
+        doc.DocumentID, doc.DocumentFavorite, doc.DocumentFavoriteID, doc.DocumentType,
+        doc.DownloadStatus, doc.DocumentVersionID, doc.DocumentVersionIcon, doc.DocumentTag,
+        doc.DocumentDesignation, doc.DocumentReference, doc.DocumentDescription,
+        doc.DocumentVersion, doc.DocumentVersionHash, doc.DocumentVersionFileID,
+        doc.DocumentVersionIsLastVersion ? 1 : 0, doc.DocumentVersionExtension,
+        doc.DocumentVersionFileName, doc.DocumentFolderID, doc.DocumentURLUser,
+        doc.DocumentURLPassword, doc.isReceived ? 1 : 0, doc.wasUnderstood ? 1 : 0
+      ];
+
+      lookupKey = 'DocumentID';
+    } else {
+      columns = [
+        'DistributionID', 'DocumentID', 'DocumentFavorite', 'DocumentFavoriteID',
+        'DocumentType', 'DownloadStatus', 'DocumentVersionID', 'DocumentVersionIcon',
+        'DocumentTag', 'DocumentDesignation', 'DocumentReference', 'DocumentDescription',
+        'DocumentVersion', 'DocumentVersionHash', 'DocumentVersionFileID',
+        'DocumentVersionIsLastVersion', 'DocumentVersionExtension', 'DocumentVersionFileName',
+        'DocumentFolderID', 'DocumentURLUser', 'DocumentURLPassword',
+        'isReceived', 'wasUnderstood', 'Comments'
+      ];
+
+      values = [
+        doc.ID, doc.DocumentID, doc.DocumentFavorite, doc.DocumentFavoriteID,
+        doc.DocumentType, doc.DownloadStatus, doc.DocumentVersionID, doc.DocumentVersionIcon,
+        doc.DocumentTag, doc.DocumentDesignation, doc.DocumentReference, doc.DocumentDescription,
+        doc.DocumentVersion, doc.DocumentVersionHash, doc.DocumentVersionFileID,
+        doc.DocumentVersionIsLastVersion ? 1 : 0, doc.DocumentVersionExtension,
+        doc.DocumentVersionFileName, doc.DocumentFolderID, doc.DocumentURLUser,
+        doc.DocumentURLPassword, doc.isReceived ? 1 : 0, doc.wasUnderstood ? 1 : 0,
+        doc.Comments
+      ];
+
+      lookupKey = 'DocumentVersionID';
+    }
+
+    const existing = await db.query(`SELECT id FROM ${table} WHERE ${lookupKey} = ?`, [doc[lookupKey]]);
+
+    if (existing.values && existing.values.length) {
+      const id = existing.values[0].id;
+
+      const setClauses = columns.map(col => `${col} = ?`).join(', ');
+      await db.run(`UPDATE ${table} SET ${setClauses} WHERE id = ?`, [...values, id]);
+    }
   }
 
   private async upsertDocumentList(

@@ -90,7 +90,6 @@ export class LastDocsPage extends BaseDocumentPage implements OnInit {
       apiCall: () => this.apiService.getToApproveDocuments(this.user.ID),
       listType: 'lastDocsDistributed',
       storeCall: (docs) => this.sqlite.updateLastDocsDistributedList(docs),
-      //postProcess: (docs) => this.syncNewFavorites(docs),
       refreshCall: () => this.getDocuments()
     });
 
@@ -148,11 +147,6 @@ export class LastDocsPage extends BaseDocumentPage implements OnInit {
   }
 
   ionViewWillEnter() {
-    // this.networkStatus = localStorage.getItem('onwi.networkStatus');
-    // // Se estiver offline redireciono para próxima aba
-    // if (this.networkStatus === 'offline') {
-    //   this.navCtrl.navigateRoot(['/my-documents']);
-    // }
     this.refresh(false);
   }
 }
