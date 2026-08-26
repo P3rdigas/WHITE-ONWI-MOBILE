@@ -206,15 +206,15 @@ ion-content {
       }
     }
   }
+
+  .empty-state {
+    text-align: center;
+    color: var(--white-gray);
+    font-size: 14px;
+  }
   
   .folder-mode-wrapper {
     padding: 0 3vw;
-
-    .empty-state {
-      text-align: center;
-      color: var(--white-gray);
-      font-size: 14px;
-    }
   }
 
   .folder-card {

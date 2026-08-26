@@ -102,8 +102,8 @@ export class LoginPage implements OnInit {
           const alert = await this.utilsService.createAlert('You need network connection', 'Since this is your first access you will need network connection to synchronize all the app content.');
           alert.present();
         }
-      } else {
-        if (this.networkStatus.connectionType !== 'wifi') {
+      } else { 
+        if (this.networkStatus !== 'wifi') {
           const proceed = await this.utilsService.validateMobileDataUsage(
             'You are about to log in using mobile data, which will sync all documents. Do you want to continue?'
           );

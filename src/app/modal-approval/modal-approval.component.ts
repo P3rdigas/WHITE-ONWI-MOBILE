@@ -22,10 +22,10 @@ export class ModalApprovalComponent implements OnInit {
   ) { }
 
   ngOnInit() {
-    this.data = this.navParams.data['document'];
-    // this.data.isReceived = doc.isReceived ? true : false;
-    // this.data.wasUnderstood = doc.wasUnderstood ? true : false;
-    // this.data.Comments = doc.Comments;
+    const doc = this.navParams.data['document'];
+    this.data = doc;
+    this.data.isReceived = doc.isReceived ? true : false;
+    this.data.wasUnderstood = doc.wasUnderstood ? true : false;
   }
 
   async postApprove(data: any) {
@@ -83,6 +83,7 @@ export class ModalApprovalComponent implements OnInit {
           await this.sqliteService.deleteLastDocDistributed(prepDoc.DocumentVersionID);
         }
       } else if (response?.isReceived && !response?.wasUnderstood) {
+        console.log("AQUIIIIIIIIIIIIIIIIIIIIIIII")
         const prepared = await this.utilsService.prepareDocumentsNew([response], 'modalApproval');
 
         // Update locally last docs too
@@ -98,6 +99,7 @@ export class ModalApprovalComponent implements OnInit {
     })
     .catch(async (error) => {
       loading.dismiss();
+      console.log('error: ', JSON.stringify(error, null, 2))
       const alert = await this.utilsService.createAlert('Something went wrong', 'Please, try again latter.');
       alert.present();
     });
