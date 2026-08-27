@@ -45,8 +45,8 @@ export class UtilsService {
     const userRaw = localStorage.getItem('onwi.User');
 
     if (!userRaw) {
-      // Faz logout sem perguntar se deseja
-      this.exitApp('externo', false);
+      // logout
+      this.exitApp(false);
       return null;
     }
 
@@ -370,16 +370,13 @@ export class UtilsService {
     const loading = await this.createLoading();
     await loading.present();
 
-    // TODO: Date should be set in the API as the id
     const id = Guid.create().toString();
-    const timeNow = new Date();
     const obj = {
       ID: id,
       UserID: user.ID,
       DocumentID: doc.DocumentID,
       DocumentVersionID: doc.DocumentVersionID,
       Status: true,
-      Date: timeNow.toJSON(),
       Comments: 'Added from APP'
     };
 
@@ -399,12 +396,9 @@ export class UtilsService {
     const loading = await this.createLoading();
     await loading.present();
 
-    // TODO: Date should be set in the API as the id
-    const timeNow = new Date();
     const patchObj = {
       DocumentVersionID: doc.DocumentVersionID,
       Status: true,
-      Date: timeNow.toJSON(),
       Comments: 'Added from APP'
     };
 
@@ -939,87 +933,7 @@ export class UtilsService {
     }
   }
 
-  // TODO:
-  limpaDownloads() {
-    // TO-DO - REFAZER PARA BANCO DE DADOS
-    const downloads: any = JSON.parse(localStorage.getItem('onwi.Downloads'));
-    // const myDocuments: any = JSON.parse(localStorage.getItem('onwi.Documents'));
-    // const favorites: any = JSON.parse(localStorage.getItem('onwi.Favorites'));
-    let documents: any = [];
-
-    // Se tem downloads, verifico
-    if (downloads) {
-      // if (myDocuments) {
-      //   // Se tem myDocuments, encremento
-      //   documents = documents.concat(myDocuments);
-      // }
-      // if (favorites) {
-      //   // Se tem favorites, encremento
-      //   documents = documents.concat(favorites);
-      // }
-
-      // Se tem MyDocuments e Favorites no storage, é só uma limpeza
-      if (documents && documents.length) {
-        // Verifico item a item de downloads
-        downloads.forEach((docFila: any, indexFila: number) => {
-          let removerDocumento = true;
-          // Se existe em MyDocuments ou Favorites
-          documents.forEach((newDoc: any) => {
-            if (docFila.DocumentID === newDoc.DocumentID) {
-              // Se existir, verifico se o HASH ainda é igual
-              if (docFila.DocumentVersionHash === docFila.DocumentVersionHash) {
-                // Deve continuar nos downloads
-                removerDocumento = false;
-              }
-            }
-          });
-          // Verifico se devo remover
-          if (removerDocumento) {
-            this.removeLocalFile(docFila).then((response) => {
-              downloads.splice(indexFila, 1);
-              // Atualizo localStorage
-              // localStorage.setItem('onwi.Downloads', JSON.stringify(downloads));
-            });
-          }
-        });
-      } else {
-        // Se não tem nada em myDocuments e favorites, limpo a fila inteira
-        downloads.forEach((docFila: any, indexFila: number) => {
-          this.removeLocalFile(docFila).then((response) => {
-            downloads.splice(indexFila, 1);
-            // Atualizo localStorage
-            // localStorage.setItem('onwi.Downloads', JSON.stringify(downloads));
-          });
-        });
-      }
-    }
-  }
-
-  // TODO:
-  cleanStorage(source: string) {
-    // localStorage.removeItem('onwi.SoftwareID');
-    if (source === 'externo') {
-      // localStorage.removeItem('onwi.SubscriptionID');
-      // localStorage.removeItem('onwi.Subscription');
-    }
-    localStorage.removeItem('onwi.Login');
-    localStorage.removeItem('onwi.UserID');
-    localStorage.removeItem('onwi.User');
-    localStorage.removeItem('onwi.Folders');
-    localStorage.removeItem('onwi.PermissionsOffline');
-    localStorage.removeItem('onwi.DocumentLog');
-    localStorage.removeItem('onwi.Library');
-    localStorage.removeItem('onwi.Documents');
-    localStorage.removeItem('onwi.Favorites');
-    localStorage.removeItem('onwi.LastDocs');
-    // this.localNotifications.clearAll();
-    // Depois de limpar localStorage, removo todos os downloads
-    this.limpaDownloads();
-  }
-
-  // TODO:
-  async exitApp(source: string, ask?: boolean) {
-    // console.log('exitApp');
+  async exitApp(ask?: boolean) {
     if (ask) {
       const alert = await this.alertController.create({
         cssClass: 'app-alert',
@@ -1031,29 +945,30 @@ export class UtilsService {
         }, {
           text: 'Yes',
           handler: () => {
-            // Limpa localStorage
-            this.cleanStorage(source);
+            this.cleanStorage();
             this.sqlite.clearAllRecords();
-            // Limpa histórico de navegação e redireciona para Login
-            if (source === 'interno') {
-              this.navCtrl.navigateRoot('/login');
-            } else {
-              // this.navCtrl.navigateRoot('/subscription');
-            }
+            this.navCtrl.navigateRoot('/login');
           }
         }]
       });
       alert.present();
     } else {
-      // Limpa localStorage
-      this.cleanStorage(source);
+      this.cleanStorage();
       this.sqlite.clearAllRecords();
-      // Limpa histórico de navegação e redireciona para Login
-      if (source === 'interno') {
-        this.navCtrl.navigateRoot('/login');
-      } else {
-        // this.navCtrl.navigateRoot('/subscription');
-      }
+      this.navCtrl.navigateRoot('/login');
+    }
+  }
+
+  async removeDownloads() {
+    const directory = this.platform.is('ios') ? Directory.Documents : Directory.Data;
+    try {
+      await Filesystem.rmdir({
+        path: '',
+        directory,
+        recursive: true
+      });
+    } catch (error) {
+      console.log('removeDownloads error', error);
     }
   }
 
@@ -1079,5 +994,21 @@ export class UtilsService {
     doc.DocumentFavorite = status;
     doc.DocumentFavoriteID = id;
     await this.sqlite.updateFavoriteDocs(doc.DocumentFavoriteID, doc.DocumentFavorite, doc);
+  }
+
+  private async cleanStorage() {
+    localStorage.removeItem('onwi.Login');
+    localStorage.removeItem('onwi.UserID');
+    localStorage.removeItem('onwi.User');
+    localStorage.removeItem('onwi.DocumentLog');
+
+    const pending = await LocalNotifications.getPending();
+    if (pending.notifications.length) {
+      await LocalNotifications.cancel(pending);
+    }
+    await LocalNotifications.removeAllDeliveredNotifications();
+
+    // Remove Downloads
+    this.removeDownloads();
   }
 }

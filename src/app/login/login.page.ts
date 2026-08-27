@@ -20,8 +20,6 @@ export class LoginPage implements OnInit {
   private result: any;
   private disabledForm: any = false;
   public networkStatus: any = localStorage.getItem('onwi.networkStatus') ? localStorage.getItem('onwi.networkStatus') : 'offline';
-  private isLoggedIn: boolean = false;
-  // TODO: Maybe use protected everywhere
   protected showPassword: boolean = false;
   protected isResetMode: boolean = false;
   protected resetMessage: string = '';
@@ -141,13 +139,8 @@ export class LoginPage implements OnInit {
                 if (localStorage.getItem('onwi.UserID')) {
                   // If an user already exists, delete everything
                   if (localStorage.getItem('onwi.UserID') !== this.result.value[0].ID) {
-                    localStorage.removeItem('onwi.Folders');
-                    localStorage.removeItem('onwi.PermissionsOffline');
-                    localStorage.removeItem('onwi.Library');
-                    localStorage.removeItem('onwi.Documents');
-                    localStorage.removeItem('onwi.Favorites');
-                    localStorage.removeItem('onwi.LastDocs');
-                    this.sqlite.clearAllRecords();
+                    await this.utilsService.removeDownloads()
+                    await this.sqlite.clearAllRecords();
                   }
                 }
                 localStorage.setItem('onwi.UserID', this.result.value[0].ID);
@@ -184,16 +177,28 @@ export class LoginPage implements OnInit {
             return true;
           })
           .catch(async (error2) => {
-            // TODO: Print an error message if the certificate is invalid or expired, or if the server is unreachable
-            console.log('validateUser failed - status:', error2.status);
-            console.log('validateUser failed - message:', error2.message);
-            console.log('validateUser failed - error:', JSON.stringify(error2.error));
             progressModal.dismiss();
-            if (localStorage.getItem('onwi.User')) {
-              this.navCtrl.navigateForward('/library');
+            const hasCachedUser = !!localStorage.getItem('onwi.User');
+
+            if (error2.status === 0) {
+              const alert = await this.utilsService.createAlert(
+                'Connection problem',
+                'We could not securely connect to the server. This may be caused by a network issue or a server certificate problem. ' +
+                (hasCachedUser
+                  ? 'You can continue using previously downloaded content, but please contact IT support and mention "connection error, status 0" so this can be investigated.'
+                  : 'Please try again, and if the problem persists, contact IT support and mention "connection error, status 0".')
+              );
+              await alert.present();
             } else {
-              const alert = await this.utilsService.createAlert('Something went wrong', 'Please, try again latter.');
-              alert.present();
+              const alert = await this.utilsService.createAlert(
+                'Something went wrong',
+                `Please, try again later. If this continues, contact IT support and mention error code ${error2.status}.`
+              );
+              await alert.present();
+            }
+
+            if (hasCachedUser) {
+              this.navCtrl.navigateForward('/my-documents');
             }
           });
 
@@ -331,9 +336,5 @@ export class LoginPage implements OnInit {
         const alert = await this.utilsService.createAlert('Something went wrong', 'Please, try again later.');
         alert.present();
       });
-  }
-
-  exit() {
-    this.utilsService.exitApp('externo', true);
   }
 }

@@ -69,4 +69,8 @@ export abstract class BaseDocumentPage {
 
         return true;
     }
+
+    exit() {
+        this.utilsService.exitApp(true);
+    }
 }

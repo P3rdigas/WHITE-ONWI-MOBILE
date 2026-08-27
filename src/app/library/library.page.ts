@@ -105,10 +105,6 @@ export class LibraryPage extends BaseDocumentPage implements OnInit {
     await alert.present();
   }
 
-  exit() {
-    this.utilsService.exitApp('interno', true);
-  }
-
   async refresh(updateApi: boolean) {
     this.tabsFolders = 'Library';
     this.networkStatus = localStorage.getItem('onwi.networkStatus');

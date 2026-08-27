@@ -58,10 +58,6 @@ export class LastDocsPage extends BaseDocumentPage implements OnInit {
     });
   }
 
-  exit() {
-    this.utilsService.exitApp('interno', true);
-  }
-
   async refresh(updateApi: boolean) {
     this.networkStatus = localStorage.getItem('onwi.networkStatus');
     this.tabsFolders = 'Last Docs Distributed';

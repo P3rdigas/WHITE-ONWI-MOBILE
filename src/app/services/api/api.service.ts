@@ -217,7 +217,6 @@ export class ApiService {
       Viewed: true
     };
 
-    // TODO: maybe could be private
     await this.postDocumentLog(obj)
     .catch(() => {
       const existing = localStorage.getItem('onwi.DocumentLog');

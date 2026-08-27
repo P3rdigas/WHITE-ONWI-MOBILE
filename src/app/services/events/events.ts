@@ -56,21 +56,5 @@ export class Events {
             delete this.channels[topic];
         }
         return null;
-
-        // const subject = this.channels[topic];
-        // if (!subject) {
-        //     return;
-        // }
-
-        // subject.complete();
-        // delete this.channels[topic];
     }
-
-    // TODO: Maybe something like:
-    // destroy(topic: string): void {
-    //     if (this.channels[topic]) {
-    //         this.channels[topic].complete();
-    //         delete this.channels[topic];
-    //     }
-    // }
 }

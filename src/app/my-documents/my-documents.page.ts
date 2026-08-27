@@ -113,10 +113,6 @@ export class MyDocumentsPage extends BaseDocumentPage implements OnInit {
     await alert.present();
   }
 
-  exit() {
-    this.utilsService.exitApp('interno', true);
-  }
-
   async refresh(updateApi: boolean) {
     this.tabsFolders = 'My Documents';
     this.networkStatus = localStorage.getItem('onwi.networkStatus');

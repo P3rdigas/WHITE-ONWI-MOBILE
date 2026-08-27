@@ -47,10 +47,6 @@ export class MyFavoritesPage extends BaseDocumentPage implements OnInit {
     });
   }
 
-  exit() {
-    this.utilsService.exitApp('interno', true);
-  }
-
   async refresh(updateApi: boolean) {
     this.tabsFolders = 'My Favorites';
     this.networkStatus = localStorage.getItem('onwi.networkStatus');
