@@ -85,9 +85,6 @@ export class LoginPage implements OnInit {
       password: this.data.password,
       remember: this.data.remember
     });
-
-    const subscription = JSON.parse(localStorage.getItem('onwi.Subscription'));
-    console.log('subscription data: ', JSON.stringify(subscription, null, 2));
   }
 
   async getUser() {

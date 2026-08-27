@@ -47,7 +47,6 @@ export class ResetPasswordPage implements OnInit {
     );
   }
 
-  // TODO: Test and config in IOS
   async ngOnInit() {
     this.token = this.route.snapshot.queryParamMap.get('token') || '';
 
