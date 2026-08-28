@@ -4,7 +4,8 @@
   ion-toolbar {
     --background: white;
     --border-width: 0px;
-    padding-top: 0 !important;
+    // padding-top: 0 !important;
+    padding-top: var(--app-safe-top);
 
     .header-row {
       display: flex;
@@ -356,6 +357,7 @@ ion-content {
 .status-footer {
   border-top: 1px solid var(--white-gray);
   background: #ffffff;
+  padding-bottom: var(--app-safe-bottom);
 
   .status-text {
     display: flex;

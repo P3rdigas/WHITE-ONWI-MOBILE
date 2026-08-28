@@ -7,6 +7,9 @@
     // justify-content: center;
     min-height: 100%;
 
+    padding-top: var(--app-safe-top);
+    padding-bottom: var(--app-safe-bottom);
+
     .logo-section {
       flex: 0 0 40vh;
       display: flex;

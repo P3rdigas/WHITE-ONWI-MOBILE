@@ -1,9 +1,19 @@
-// ion-content {
-//   --overflow: hidden;
-// }
+ion-header {
+  ion-toolbar {
+    --border-width: 0;
+    padding-top: var(--app-safe-top);
+  }
 
-// ngx-extended-pdf-viewer {
-//   display: block;
-//   height: 100vh;
-//   width: 100%;
-// }
+  ion-title {
+    color: black;
+  }
+
+  ion-back-button,
+  ion-button {
+    --color: var(--white-gray);
+  }
+}
+
+ion-content {
+  --padding-bottom: var(--app-safe-bottom);
+}

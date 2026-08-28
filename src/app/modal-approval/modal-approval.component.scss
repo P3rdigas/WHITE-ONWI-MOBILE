@@ -2,6 +2,7 @@
   ion-toolbar {
     --background: white;
     --border-width: 0px !important;
+    padding-top: var(--app-safe-top);
   }
 
   .close-btn {
@@ -11,6 +12,7 @@
 
 .approve-modal-content {
   --background: white;
+  padding-bottom: var(--app-safe-bottom);
 
   .modal-title {
     display: block;

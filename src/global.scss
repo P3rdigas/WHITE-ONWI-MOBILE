@@ -58,5 +58,7 @@
 }
 
 :root {
-    --app-font-brand: "Arial", "Arial Bold", "Helvetica Neue", sans-serif;
+  --app-font-brand: "Arial", "Arial Bold", "Helvetica Neue", sans-serif;
+  --app-safe-top: env(safe-area-inset-top, 0px);
+  --app-safe-bottom: env(safe-area-inset-bottom, 0px);
 }
