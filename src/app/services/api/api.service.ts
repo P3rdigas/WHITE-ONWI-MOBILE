@@ -42,15 +42,12 @@ export class ApiService {
   }
 
   encryptPass(password: any) {
-    const url = 'https://api.onwi-app.com/conversor.php?string=' + encodeURIComponent(password);
-    console.log('encryptPass url', url);
+    const url = 'https://encrypt.flywhite.com/conversor.php?string=' + encodeURIComponent(password);
     return this._http.get(url).toPromise();
-    // return this.http.get(url).toPromise();
   }
 
   async validateUser(email: string, password: string) {
     const url = encodeURI(environment.OdataEndpoint + 'WEBUser?$filter=Email eq \'' + email + '\' and Password eq \'' + password + '\'');
-    console.log('validateUser url', url);
   
     const options = await this.getBasicOptions();
     return firstValueFrom(this._http.get(url, options));
